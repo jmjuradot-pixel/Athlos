@@ -1,4 +1,19 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Athlos
+
+Panel de salud y rendimiento para registrar check-ins semanales, evolución corporal, salud hepática y entrenamiento.
+
+## Puesta en marcha
+
+1. Copia `.env.example` como `.env.local` y añade las credenciales de Supabase cuando el proyecto esté creado.
+2. Ejecuta `npm run dev`.
+3. Abre `http://localhost:3000`.
+
+## Estructura inicial
+
+- `src/app`: rutas y pantallas.
+- `src/components/layout`: navegación compartida.
+- `src/components/ui`: componentes compatibles con shadcn/ui.
+- `src/lib/supabase`: cliente preparado para conexión posterior.
 
 ## Getting Started
 
