@@ -41,7 +41,7 @@ export default function AuthPage() {
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <Image src="/icon-192.svg" alt="Athlos" width={56} height={56} className="mx-auto mb-4 size-14" priority/>
+          <Image src="/logo.png" alt="Athlos" width={56} height={56} className="mx-auto mb-4 size-14 rounded-2xl" priority/>
           <h1 className="text-2xl font-bold text-slate-950">Athlos</h1>
           <p className="mt-1 text-sm text-slate-500">{isLogin ? "Inicia sesión" : "Crea tu cuenta"}</p>
         </div>
