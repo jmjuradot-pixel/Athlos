@@ -2,7 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
+import { getSupabase } from "@/lib/supabase/client";
 import { LogIn, UserPlus } from "lucide-react";
 
 export default function AuthPage() {
@@ -20,8 +20,8 @@ export default function AuthPage() {
     setMessage("");
     setLoading(true);
     const { error: authError } = isLogin
-      ? await supabase.auth.signInWithPassword({ email, password })
-      : await supabase.auth.signUp({ email, password });
+      ? await getSupabase().auth.signInWithPassword({ email, password })
+      : await getSupabase().auth.signUp({ email, password });
     setLoading(false);
     if (authError) {
       if (authError.message.includes("Email not confirmed") || authError.message.includes("sign_up")) {

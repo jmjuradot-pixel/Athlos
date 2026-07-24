@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Activity, ArrowDownRight, ArrowUpRight, Bike, ChevronRight, Dumbbell, Footprints, HeartPulse, Scale, Target, Wine } from "lucide-react";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/lib/supabase/client";
+import { getSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 
 const fallbackMetrics = [
@@ -31,8 +31,8 @@ export default function DashboardPage() {
 
       if (user) {
         const [checkinsRes, labsRes] = await Promise.all([
-          supabase.from("check_ins").select("*").eq("user_id", user.id).order("recorded_at", { ascending: false }).limit(1),
-          supabase.from("lab_results").select("*").eq("user_id", user.id).order("tested_at", { ascending: false }).limit(1),
+          getSupabase().from("check_ins").select("*").eq("user_id", user.id).order("recorded_at", { ascending: false }).limit(1),
+          getSupabase().from("lab_results").select("*").eq("user_id", user.id).order("tested_at", { ascending: false }).limit(1),
         ]);
         if (checkinsRes.data?.[0]) checkInData = checkinsRes.data[0];
         if (labsRes.data?.[0]) labsData = labsRes.data[0];

@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Check, Save } from "lucide-react";
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { supabase } from "@/lib/supabase/client";
+import { getSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 
 type CheckIn = { weeklyWeight: string; sundayWeight: string; waist: string; strength: string; cardio: string; steps: string; alcohol: string; energy: string; hunger: string; sleep: string; comments: string };
@@ -28,7 +28,7 @@ export default function CheckInPage() {
     const savedCheckIn = localStorage.getItem("athlos-latest-checkin");
     if (savedCheckIn) setData(JSON.parse(savedCheckIn));
     if (user) {
-      supabase.from("check_ins").select("*").eq("user_id", user.id).order("recorded_at", { ascending: false }).limit(1).then(({ data: rows }) => {
+      getSupabase().from("check_ins").select("*").eq("user_id", user.id).order("recorded_at", { ascending: false }).limit(1).then(({ data: rows }) => {
         if (rows?.[0]) setData({
           weeklyWeight: String(rows[0].weekly_weight ?? ""),
           sundayWeight: String(rows[0].sunday_weight ?? ""),
@@ -56,7 +56,7 @@ export default function CheckInPage() {
     localStorage.setItem("athlos-checkins", JSON.stringify(nextHistory));
     if (user) {
       const today = new Date().toISOString().slice(0, 10);
-      await supabase.from("check_ins").upsert({
+      await getSupabase().from("check_ins").upsert({
         user_id: user.id, recorded_at: today,
         weekly_weight: data.weeklyWeight ? Number(data.weeklyWeight) : null,
         sunday_weight: data.sundayWeight ? Number(data.sundayWeight) : null,
