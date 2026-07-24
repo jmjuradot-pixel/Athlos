@@ -5,32 +5,51 @@ import { useEffect, useState } from "react";
 import { Activity, ArrowDownRight, ArrowUpRight, Bike, ChevronRight, Dumbbell, Footprints, HeartPulse, Scale, Target, Wine } from "lucide-react";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/lib/supabase/client";
+import { useAuth } from "@/components/auth-provider";
 
 const fallbackMetrics = [
-  { label: "Peso", value: "94,0", unit: "kg", detail: "−1,0 kg desde vacaciones", icon: Scale, tone: "bg-emerald-50 text-emerald-700", positive: true },
-  { label: "Cintura", value: "102", unit: "cm", detail: "Sin cambios esta semana", icon: Target, tone: "bg-sky-50 text-sky-700", positive: null },
-  { label: "Entrenamientos", value: "3", unit: "/ 3", detail: "Objetivo semanal cumplido", icon: Dumbbell, tone: "bg-violet-50 text-violet-700", positive: true },
-  { label: "Pasos", value: "8.420", unit: "media diaria", detail: "Por encima del objetivo", icon: Footprints, tone: "bg-amber-50 text-amber-700", positive: true },
-  { label: "Alcohol", value: "200", unit: "ml", detail: "Esta semana", icon: Wine, tone: "bg-orange-50 text-orange-700", positive: true },
-  { label: "Salud hepática", value: "68,9", unit: "FLI", detail: "Última medición · Jul 2026", icon: HeartPulse, tone: "bg-rose-50 text-rose-700", positive: null },
+  { label: "Peso", value: "—", unit: "kg", detail: "Sin datos aún", icon: Scale, tone: "bg-emerald-50 text-emerald-700", positive: null },
+  { label: "Cintura", value: "—", unit: "cm", detail: "Sin datos aún", icon: Target, tone: "bg-sky-50 text-sky-700", positive: null },
+  { label: "Entrenamientos", value: "—", unit: "/ —", detail: "Sin datos aún", icon: Dumbbell, tone: "bg-violet-50 text-violet-700", positive: null },
+  { label: "Pasos", value: "—", unit: "media diaria", detail: "Sin datos aún", icon: Footprints, tone: "bg-amber-50 text-amber-700", positive: null },
+  { label: "Alcohol", value: "—", unit: "ml", detail: "Sin datos aún", icon: Wine, tone: "bg-orange-50 text-orange-700", positive: null },
+  { label: "Salud hepática", value: "—", unit: "—", detail: "Sin datos aún", icon: HeartPulse, tone: "bg-rose-50 text-rose-700", positive: null },
 ];
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const [metrics, setMetrics] = useState(fallbackMetrics);
+
   useEffect(() => {
-    const checkIn = JSON.parse(localStorage.getItem("athlos-latest-checkin") ?? "null");
-    const labs = JSON.parse(localStorage.getItem("athlos-latest-labs") ?? "null");
-    const goals = JSON.parse(localStorage.getItem("athlos-goals") ?? "null");
-    if (!checkIn && !labs && !goals) return;
-    setMetrics([
-      { ...fallbackMetrics[0], value: checkIn?.weeklyWeight || fallbackMetrics[0].value, detail: checkIn ? "Último check-in guardado" : fallbackMetrics[0].detail },
-      { ...fallbackMetrics[1], value: checkIn?.waist || fallbackMetrics[1].value, detail: goals?.targetWaist ? `Objetivo: ${goals.targetWaist} cm` : fallbackMetrics[1].detail },
-      { ...fallbackMetrics[2], value: checkIn?.strength || fallbackMetrics[2].value, unit: goals?.targetStrength ? `/ ${goals.targetStrength}` : fallbackMetrics[2].unit, detail: checkIn ? "Último check-in guardado" : fallbackMetrics[2].detail },
-      { ...fallbackMetrics[3], value: checkIn?.steps ? Number(checkIn.steps).toLocaleString("es-ES") : fallbackMetrics[3].value, detail: goals?.targetSteps ? `Objetivo: ${Number(goals.targetSteps).toLocaleString("es-ES")} pasos` : fallbackMetrics[3].detail },
-      { ...fallbackMetrics[4], value: checkIn?.alcohol || fallbackMetrics[4].value, detail: goals?.targetAlcohol !== undefined ? `Objetivo: ${goals.targetAlcohol} ml por semana` : fallbackMetrics[4].detail },
-      { ...fallbackMetrics[5], value: labs?.alt || fallbackMetrics[5].value, unit: labs ? "ALT / GPT" : fallbackMetrics[5].unit, detail: labs?.date ? `Analítica: ${new Date(labs.date).toLocaleDateString("es-ES")}` : fallbackMetrics[5].detail },
-    ]);
-  }, []);
+    async function load() {
+      const checkIn = JSON.parse(localStorage.getItem("athlos-latest-checkin") ?? "null");
+      const labs = JSON.parse(localStorage.getItem("athlos-latest-labs") ?? "null");
+      const goals = JSON.parse(localStorage.getItem("athlos-goals") ?? "null");
+      let checkInData = checkIn;
+      let labsData = labs;
+
+      if (user) {
+        const [checkinsRes, labsRes] = await Promise.all([
+          supabase.from("check_ins").select("*").eq("user_id", user.id).order("recorded_at", { ascending: false }).limit(1),
+          supabase.from("lab_results").select("*").eq("user_id", user.id).order("tested_at", { ascending: false }).limit(1),
+        ]);
+        if (checkinsRes.data?.[0]) checkInData = checkinsRes.data[0];
+        if (labsRes.data?.[0]) labsData = labsRes.data[0];
+      }
+
+      setMetrics([
+        { ...fallbackMetrics[0], value: checkInData?.weekly_weight ?? checkInData?.weeklyWeight ?? fallbackMetrics[0].value, detail: checkInData ? "Último check-in" : fallbackMetrics[0].detail },
+        { ...fallbackMetrics[1], value: checkInData?.waist ?? fallbackMetrics[1].value, detail: goals?.targetWaist ? `Objetivo: ${goals.targetWaist} cm` : fallbackMetrics[1].detail },
+        { ...fallbackMetrics[2], value: checkInData?.strength_sessions ?? checkInData?.strength ?? fallbackMetrics[2].value, unit: goals?.targetStrength ? `/ ${goals.targetStrength}` : fallbackMetrics[2].unit, detail: checkInData ? "Último check-in" : fallbackMetrics[2].detail },
+        { ...fallbackMetrics[3], value: checkInData?.average_steps ?? checkInData?.steps ? Number(checkInData?.average_steps ?? checkInData?.steps).toLocaleString("es-ES") : fallbackMetrics[3].value, detail: goals?.targetSteps ? `Objetivo: ${Number(goals.targetSteps).toLocaleString("es-ES")} pasos` : fallbackMetrics[3].detail },
+        { ...fallbackMetrics[4], value: checkInData?.alcohol_ml ?? checkInData?.alcohol ?? fallbackMetrics[4].value, detail: goals?.targetAlcohol !== undefined ? `Objetivo: ${goals.targetAlcohol} ml por semana` : fallbackMetrics[4].detail },
+        { ...fallbackMetrics[5], value: labsData?.alt ?? fallbackMetrics[5].value, unit: labsData ? "ALT / GPT" : fallbackMetrics[5].unit, detail: labsData?.tested_at ? `Analítica: ${new Date(labsData.tested_at).toLocaleDateString("es-ES")}` : labsData?.date ? `Analítica: ${new Date(labsData.date).toLocaleDateString("es-ES")}` : fallbackMetrics[5].detail },
+      ]);
+    }
+    load();
+  }, [user]);
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <AppSidebar />
@@ -82,7 +101,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="pt-5">
                 <div className="relative h-56 w-full">
-                  <svg viewBox="0 0 640 220" className="h-full w-full" role="img" aria-label="Tendencia descendente del peso">
+                  <svg viewBox="0 0 640 220" className="h-full w-full" role="img" aria-label="Tendencia del peso">
                     {[40, 90, 140, 190].map((y) => <line key={y} x1="0" x2="640" y1={y} y2={y} stroke="#e2e8f0" strokeDasharray="4 6" />)}
                     <path d="M0 36 C72 40 82 58 145 58 S242 95 305 88 S390 112 450 110 S548 143 640 154 L640 220 L0 220 Z" fill="#d1fae5" opacity=".65" />
                     <path d="M0 36 C72 40 82 58 145 58 S242 95 305 88 S390 112 450 110 S548 143 640 154" fill="none" stroke="#047857" strokeWidth="4" strokeLinecap="round" />
