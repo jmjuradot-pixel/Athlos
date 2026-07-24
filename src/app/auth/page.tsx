@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { getSupabase } from "@/lib/supabase/client";
 import { LogIn, UserPlus } from "lucide-react";
 
@@ -21,7 +22,7 @@ export default function AuthPage() {
     setLoading(true);
     const { error: authError } = isLogin
       ? await getSupabase().auth.signInWithPassword({ email, password })
-      : await getSupabase().auth.signUp({ email, password });
+      : await getSupabase().auth.signUp({ email, password, options: { emailRedirectTo: "https://athlos-kohl.vercel.app/auth/callback" } });
     setLoading(false);
     if (authError) {
       if (authError.message.includes("Email not confirmed") || authError.message.includes("sign_up")) {
@@ -40,7 +41,7 @@ export default function AuthPage() {
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <span className="mx-auto mb-4 grid size-14 place-items-center rounded-2xl bg-emerald-700 text-2xl font-bold text-white">A</span>
+          <Image src="/icon-192.svg" alt="Athlos" width={56} height={56} className="mx-auto mb-4 size-14" priority/>
           <h1 className="text-2xl font-bold text-slate-950">Athlos</h1>
           <p className="mt-1 text-sm text-slate-500">{isLogin ? "Inicia sesión" : "Crea tu cuenta"}</p>
         </div>

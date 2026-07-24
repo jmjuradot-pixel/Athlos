@@ -1,1 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192"><rect width="192" height="192" rx="32" fill="#047857"/><text x="96" y="112" font-family="system-ui,sans-serif" font-size="80" font-weight="700" fill="white" text-anchor="middle">A</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#047857"/>
+      <stop offset="100%" stop-color="#065f46"/>
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="38" fill="url(#bg)"/>
+  <g transform="translate(96,100)">
+    <path d="M0-12 C-8-22 -24-20 -28-10 C-32 0 -20 12 0 26 C20 12 32 0 28-10 C24-20 8-22 0-12Z" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+    <polyline points="14,4 4,-6 -10,8 -18,-2" fill="none" stroke="#6ee7b7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="-28,-8 -18,-8 -14,0 -10,-14 -6,2 -2,-8 6,-8 10,0 14,-6 18,-8 28,-8" fill="none" stroke="#a7f3d0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
