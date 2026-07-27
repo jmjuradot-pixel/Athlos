@@ -28,7 +28,7 @@ export default function CheckInPage() {
     const savedCheckIn = localStorage.getItem("athlos-latest-checkin");
     if (savedCheckIn) setData(JSON.parse(savedCheckIn));
     if (user) {
-      getSupabase().from("check_ins").select("*").eq("user_id", user.id).order("recorded_at", { ascending: false }).limit(1).then(({ data: rows }) => {
+      getSupabase().from("check_ins").select("*").eq("user_id", user.id).order("recorded_at", { ascending: false }).limit(1).then(({ data: rows }: { data: any[] | null }) => {
         if (rows?.[0]) setData({
           weeklyWeight: String(rows[0].weekly_weight ?? ""),
           sundayWeight: String(rows[0].sunday_weight ?? ""),
