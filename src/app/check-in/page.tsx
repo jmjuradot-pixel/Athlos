@@ -56,7 +56,7 @@ export default function CheckInPage() {
     localStorage.setItem("athlos-checkins", JSON.stringify(nextHistory));
     if (user) {
       const today = new Date().toISOString().slice(0, 10);
-      await getSupabase().from("check_ins").upsert({
+      const { error } = await getSupabase().from("check_ins").upsert({
         user_id: user.id, recorded_at: today,
         weekly_weight: data.weeklyWeight ? Number(data.weeklyWeight) : null,
         sunday_weight: data.sundayWeight ? Number(data.sundayWeight) : null,
@@ -70,6 +70,7 @@ export default function CheckInPage() {
         sleep: data.sleep ? Number(data.sleep) : null,
         comments: data.comments || null,
       }, { onConflict: "user_id, recorded_at" });
+      if (error) console.error("Supabase check_ins error:", error);
     }
     setSaving(false);
     setSaved(true);

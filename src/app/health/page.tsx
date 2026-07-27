@@ -58,13 +58,14 @@ export default function HealthPage() {
     localStorage.setItem("athlos-latest-labs", JSON.stringify(labs));
     localStorage.setItem("athlos-labs", JSON.stringify(next));
     if (user) {
-      await getSupabase().from("lab_results").upsert({
+      const { error } = await getSupabase().from("lab_results").upsert({
         user_id: user.id, tested_at: labs.date,
         alt: labs.alt ? Number(labs.alt) : null, ast: labs.ast ? Number(labs.ast) : null,
         ggt: labs.ggt ? Number(labs.ggt) : null, ldl: labs.ldl ? Number(labs.ldl) : null,
         hdl: labs.hdl ? Number(labs.hdl) : null, triglycerides: labs.triglycerides ? Number(labs.triglycerides) : null,
         glucose: labs.glucose ? Number(labs.glucose) : null,
       }, { onConflict: "user_id, tested_at" });
+      if (error) console.error("Supabase lab_results error:", error);
     }
     setSaving(false);
     setSaved(true);
