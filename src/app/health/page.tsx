@@ -32,18 +32,18 @@ export default function HealthPage() {
     if (existing) setLabs(JSON.parse(existing));
     if (savedHistory) setHistory(JSON.parse(savedHistory));
     if (user) {
-      getSupabase().from("lab_results").select("*").eq("user_id", user.id).order("tested_at", { ascending: false }).then(({ data: rows }: { data: Record<string, unknown>[] | null }) => {
+      getSupabase().from("lab_results").select("*").eq("user_id", user.id).order("tested_at", { ascending: false }).then(({ data: rows }: { data: any[] | null }) => {
         if (rows?.length) {
           const latest = rows[0];
           setLabs({
             alt: String(latest.alt ?? ""), ast: String(latest.ast ?? ""), ggt: String(latest.ggt ?? ""),
             ldl: String(latest.ldl ?? ""), hdl: String(latest.hdl ?? ""), triglycerides: String(latest.triglycerides ?? ""),
-            glucose: String(latest.glucose ?? ""), date: String(latest.tested_at ?? ""),
+            glucose: String(latest.glucose ?? ""), date: latest.tested_at,
           });
           setHistory(rows.map((r) => ({
             alt: String(r.alt ?? ""), ast: String(r.ast ?? ""), ggt: String(r.ggt ?? ""),
             ldl: String(r.ldl ?? ""), hdl: String(r.hdl ?? ""), triglycerides: String(r.triglycerides ?? ""),
-            glucose: String(r.glucose ?? ""), date: String(r.tested_at ?? ""),
+            glucose: String(r.glucose ?? ""), date: r.tested_at,
           })));
         }
       });
