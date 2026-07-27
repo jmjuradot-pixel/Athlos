@@ -40,7 +40,7 @@ export default function CheckInPage() {
           energy: String(rows[0].energy ?? ""),
           hunger: String(rows[0].hunger ?? ""),
           sleep: String(rows[0].sleep ?? ""),
-          comments: rows[0].comments ?? "",
+          comments: String(rows[0].comments ?? ""),
         });
       });
     }
