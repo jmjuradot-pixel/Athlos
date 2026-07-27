@@ -3,7 +3,7 @@
 import { useEffect, useState, createContext, useContext } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { getSupabase } from "@/lib/supabase/client";
-import type { User } from "@supabase/supabase-js";
+import type { User, Session } from "@supabase/supabase-js";
 
 const AuthCtx = createContext<{ user: User | null; loading: boolean }>({ user: null, loading: true });
 export const useAuth = () => useContext(AuthCtx);
@@ -19,7 +19,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null);
       setLoading(false);
     });
-    const { data: { subscription } } = getSupabase().auth.onAuthStateChange((_event: string, session) => {
+    const { data: { subscription } } = getSupabase().auth.onAuthStateChange((_event: string, session: Session | null) => {
       setUser(session?.user ?? null);
     });
     return () => subscription.unsubscribe();
