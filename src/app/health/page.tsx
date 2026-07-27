@@ -32,7 +32,7 @@ export default function HealthPage() {
     if (existing) setLabs(JSON.parse(existing));
     if (savedHistory) setHistory(JSON.parse(savedHistory));
     if (user) {
-      getSupabase().from("lab_results").select("*").eq("user_id", user.id).order("tested_at", { ascending: false }).then(({ data: rows }: { data: any[] | null }) => {
+      getSupabase().from("lab_results").select("*").eq("user_id", user.id).order("tested_at", { ascending: false }).then(({ data: rows }: { data: Record<string, unknown>[] | null }) => {
         if (rows?.length) {
           const latest = rows[0];
           setLabs({
