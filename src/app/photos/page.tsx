@@ -1,13 +1,71 @@
 "use client";
 
-import { ChangeEvent, useEffect, useState } from "react";
-import Image from "next/image";
-import { Camera, ImagePlus, RotateCcw } from "lucide-react";
+import { useRef, useState } from "react";
+import { Camera } from "lucide-react";
 import { PageLayout, PageHeader } from "@/components/layout/page-layout";
-import { Card, CardContent } from "@/components/ui/card";
-const views = [{ id: "front", label: "Frente", hint: "Relajado, sin posar" }, { id: "left", label: "Perfil izquierdo", hint: "Brazos relajados" }, { id: "back", label: "Espalda", hint: "Postura natural" }, { id: "right", label: "Perfil derecho", hint: "Brazos relajados" }];
-type Photos = Record<string, string>;
-function openPhotoDb(): Promise<IDBDatabase> { return new Promise((resolve, reject) => { const request = indexedDB.open("athlos", 1); request.onupgradeneeded = () => request.result.createObjectStore("photos"); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); }); }
-async function readPhotos() { const db = await openPhotoDb(); return new Promise<Photos>((resolve, reject) => { const request = db.transaction("photos").objectStore("photos").get("monthly"); request.onsuccess = () => resolve(request.result ?? {}); request.onerror = () => reject(request.error); }); }
-async function writePhotos(photos: Photos) { const db = await openPhotoDb(); return new Promise<void>((resolve, reject) => { const request = db.transaction("photos", "readwrite").objectStore("photos").put(photos, "monthly"); request.onsuccess = () => resolve(); request.onerror = () => reject(request.error); }); }
-export default function PhotosPage() { const [photos, setPhotos] = useState<Photos>({}); const [loaded, setLoaded] = useState(false); useEffect(() => { readPhotos().then(setPhotos).catch(() => undefined).finally(() => setLoaded(true)); }, []); function updatePhotos(next: Photos) { setPhotos(next); writePhotos(next).catch(() => undefined); } function addPhoto(event: ChangeEvent<HTMLInputElement>, id: string) { const file = event.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => updatePhotos({ ...photos, [id]: String(reader.result) }); reader.readAsDataURL(file); } return <PageLayout><PageHeader tag="EVOLUCIÓN FÍSICA" title="Fotos mensuales" description="Hazlas por la mañana, con la misma luz, distancia y ropa. Busca consistencia: las fotos no tienen que ser bonitas, tienen que ser comparables." /><Card className="mb-6 border-sky-200 bg-sky-50 shadow-none"><CardContent className="flex gap-3 p-5"><Camera className="mt-0.5 size-5 shrink-0 text-sky-700"/><p className="text-sm leading-6 text-sky-950">Tus imágenes se guardan únicamente en este navegador. Cuando conectemos Supabase, podrás guardar una copia privada en la nube.</p></CardContent></Card><section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">{views.map(({ id, label, hint }) => <div key={id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div className="relative aspect-[3/4] bg-slate-100">{photos[id] ? <Image src={photos[id]} alt={`Foto ${label}`} fill unoptimized className="object-cover"/> : <label className="flex h-full cursor-pointer flex-col items-center justify-center gap-3 p-5 text-center text-slate-500 transition hover:bg-slate-50"><ImagePlus className="size-7 text-emerald-700"/><span className="text-sm font-semibold text-slate-700">{loaded ? "Subir foto" : "Cargando…"}</span><input onChange={(event) => addPhoto(event, id)} accept="image/*" type="file" className="sr-only"/></label>}</div><div className="flex items-center justify-between p-4"><div><p className="font-semibold text-slate-900">{label}</p><p className="mt-1 text-xs text-slate-500">{hint}</p></div>{photos[id] && <button onClick={() => { const next = { ...photos }; delete next[id]; updatePhotos(next); }} aria-label={`Eliminar foto ${label}`} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><RotateCcw className="size-4"/></button>}</div></div>)}</section></PageLayout>; }
+import { usePhotos } from "@/hooks/usePhotos";
+
+export default function PhotosPage() {
+  const { photos, addPhoto } = usePhotos();
+  const [selected, setSelected] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const months = [...new Set(photos.map((p) => p.date.slice(0, 7)))].sort().reverse();
+
+  async function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const dataUrl = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.readAsDataURL(file);
+    });
+    const date = new Date().toISOString().slice(0, 10);
+    await addPhoto({ date, dataUrl });
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
+  return (
+    <PageLayout>
+      <PageHeader tag="FOTOS" title="Fotos de progreso" description="Mensualmente, misma postura, misma luz. La foto más honesta." />
+      <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handleFile} className="hidden" />
+      <button onClick={() => fileRef.current?.click()} className="mb-8 flex w-full cursor-pointer items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-slate-300 bg-white p-8 text-slate-500 transition hover:border-emerald-400 hover:text-emerald-700">
+        <Camera className="size-6" />
+        <span className="text-sm font-semibold">Hacer foto o subir desde galería</span>
+      </button>
+
+      {months.map((month) => {
+        const monthPhotos = photos.filter((p) => p.date.startsWith(month));
+        const monthName = new Date(month + "-01").toLocaleDateString("es-ES", { month: "long", year: "numeric" });
+        return (
+          <section key={month} className="mb-8">
+            <h2 className="mb-3 text-lg font-semibold capitalize text-slate-900">{monthName}</h2>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {monthPhotos.map((photo) => (
+                <button key={photo.date} onClick={() => setSelected(photo.dataUrl)} className="group relative aspect-[3/4] overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm transition hover:shadow-md">
+                  <img src={photo.dataUrl} alt={`Foto ${photo.date}`} className="size-full object-cover" />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-3">
+                    <p className="text-xs font-medium text-white">{new Date(photo.date).toLocaleDateString("es-ES")}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
+        );
+      })}
+
+      {photos.length === 0 && (
+        <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
+          <Camera className="mx-auto mb-4 size-10 text-slate-300" />
+          <p className="text-sm font-medium text-slate-500">Aún no has añadido ninguna foto</p>
+          <p className="mt-1 text-xs text-slate-400">Haz una foto cada mes para ver tu evolución</p>
+        </div>
+      )}
+
+      {selected && (
+        <div onClick={() => setSelected(null)} className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+          <img src={selected} alt="Foto ampliada" className="max-h-[90vh] max-w-full rounded-2xl object-contain" />
+        </div>
+      )}
+    </PageLayout>
+  );
+}

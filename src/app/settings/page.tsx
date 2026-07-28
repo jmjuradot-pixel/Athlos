@@ -8,9 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { syncLocalStorage } from "@/lib/sync-queue";
+import { Goals } from "@/domain/Goals";
 
-type Goals = { targetWeight: string; targetWaist: string; targetSteps: string; targetStrength: string; targetAlcohol: string };
-const initial: Goals = { targetWeight: "87", targetWaist: "95", targetSteps: "8000", targetStrength: "3", targetAlcohol: "0" };
+const initial: Goals = { targetWeight: 87, targetWaist: 95, targetSteps: 8000, targetStrength: 3, targetAlcohol: 0 };
 const fields: { key: keyof Goals; label: string; detail: string; unit: string }[] = [
   { key: "targetWeight", label: "Peso objetivo", detail: "Primer objetivo realista de salud", unit: "kg" },
   { key: "targetWaist", label: "Cintura objetivo", detail: "Medida a la altura del ombligo", unit: "cm" },
@@ -87,7 +87,7 @@ export default function SettingsPage() {
         setTimeout(() => setImported(false), 4000);
         window.location.reload();
       } catch {
-        setImportError("No se pudo leer el archivo. Asegurate de que es un JSON valido.");
+        setImportError("No se pudo leer el archivo. Asegurate de que es un JSON válido.");
       }
     };
     reader.readAsText(file);
@@ -95,36 +95,36 @@ export default function SettingsPage() {
   }
 
   async function syncToSupabase() {
-    if (!user) { setSyncResult("No hay sesion. Inicia sesion para sincronizar."); return; }
+    if (!user) { setSyncResult("No hay sesión. Inicia sesión para sincronizar."); return; }
     setSyncing(true);
     setSyncResult("Sincronizando...");
     const logs: string[] = [];
 
     let r = await syncLocalStorage(user.id, "check_ins", "athlos-checkins",
-      (item: any) => ({ recorded_at: item.recordedAt?.slice(0, 10) ?? new Date().toISOString().slice(0, 10), weekly_weight: item.weeklyWeight ? Number(item.weeklyWeight) : null, sunday_weight: item.sundayWeight ? Number(item.sundayWeight) : null, waist: item.waist ? Number(item.waist) : null, strength_sessions: item.strength ? Number(item.strength) : null, cardio_minutes: item.cardio ? Number(item.cardio) : null, average_steps: item.steps ? Number(item.steps) : null, alcohol_ml: item.alcohol ? Number(item.alcohol) : null, energy: item.energy ? Number(item.energy) : null, hunger: item.hunger ? Number(item.hunger) : null, sleep: item.sleep ? Number(item.sleep) : null, comments: item.comments || null }),
+      (item: any) => ({ recorded_at: item.recordedAt ?? item.recorded_at, weekly_weight: item.weeklyWeight ?? item.weekly_weight ?? null, sunday_weight: item.sundayWeight ?? item.sunday_weight ?? null, waist: item.waist ?? null, strength_sessions: item.strengthSessions ?? item.strength_sessions ?? null, cardio_minutes: item.cardioMinutes ?? item.cardio_minutes ?? null, average_steps: item.averageSteps ?? item.average_steps ?? null, alcohol_ml: item.alcoholMl ?? item.alcohol_ml ?? null, energy: item.energy ?? null, hunger: item.hunger ?? null, sleep: item.sleep ?? null, comments: item.comments ?? null }),
       "user_id, recorded_at",
     );
     logs.push(`Check-ins: ${r.synced} sincronizados, ${r.skipped} omitidos, ${r.failed} errores`);
 
     r = await syncLocalStorage(user.id, "lab_results", "athlos-labs",
-      (item: any) => ({ tested_at: item.date, alt: item.alt ? Number(item.alt) : null, ast: item.ast ? Number(item.ast) : null, ggt: item.ggt ? Number(item.ggt) : null, ldl: item.ldl ? Number(item.ldl) : null, hdl: item.hdl ? Number(item.hdl) : null, triglycerides: item.triglycerides ? Number(item.triglycerides) : null, glucose: item.glucose ? Number(item.glucose) : null }),
+      (item: any) => ({ tested_at: item.testedAt ?? item.date, alt: item.alt ?? null, ast: item.ast ?? null, ggt: item.ggt ?? null, ldl: item.ldl ?? null, hdl: item.hdl ?? null, triglycerides: item.triglycerides ?? null, glucose: item.glucose ?? null }),
       "user_id, tested_at",
     );
     logs.push(`Analíticas: ${r.synced} sincronizados, ${r.skipped} omitidos, ${r.failed} errores`);
 
     r = await syncLocalStorage(user.id, "zepp_metrics", "athlos-zepp-history",
-      (item: any) => ({ recorded_at: item.date, weight: item.weight ? Number(item.weight) : null, body_fat: item.bodyFat ? Number(item.bodyFat) : null, muscle_mass: item.muscleMass ? Number(item.muscleMass) : null, water: item.water ? Number(item.water) : null, visceral_fat: item.visceralFat ? Number(item.visceralFat) : null, bmr: item.bmr ? Number(item.bmr) : null, sleep_hours: item.sleepHours ? Number(item.sleepHours) : null, sleep_deep: item.sleepDeep ? Number(item.sleepDeep) : null, sleep_rem: item.sleepRem ? Number(item.sleepRem) : null, resting_heart_rate: item.restingHeartRate ? Number(item.restingHeartRate) : null, steps: item.steps ? Number(item.steps) : null }),
+      (item: any) => ({ recorded_at: item.recordedAt ?? item.date, weight: item.weight ?? null, body_fat: item.bodyFat ?? item.body_fat ?? null, muscle_mass: item.muscleMass ?? item.muscle_mass ?? null, water: item.water ?? null, visceral_fat: item.visceralFat ?? item.visceral_fat ?? null, bmr: item.bmr ?? null, sleep_hours: item.sleepHours ?? item.sleep_hours ?? null, sleep_deep: item.sleepDeep ?? item.sleep_deep ?? null, sleep_rem: item.sleepRem ?? item.sleep_rem ?? null, resting_heart_rate: item.restingHeartRate ?? item.resting_heart_rate ?? null, steps: item.steps ?? null }),
       "user_id, recorded_at",
     );
     logs.push(`Zepp: ${r.synced} sincronizados, ${r.skipped} omitidos, ${r.failed} errores`);
 
     r = await syncLocalStorage(user.id, "workout_sessions", "athlos-workouts",
-      (item: any) => ({ recorded_at: item.date, duration: item.duration ? Number(item.duration) : null, volume: item.volume ? Number(item.volume) : null, muscle_groups: item.muscleGroups ? item.muscleGroups.split(",").map((s: string) => s.trim()).filter(Boolean) : [], exercises: item.exercises ? Number(item.exercises) : null }),
+      (item: any) => ({ recorded_at: item.recordedAt ?? item.date, duration: item.duration ?? null, volume: item.volume ?? null, muscle_groups: item.muscleGroups ?? item.muscle_groups ?? [], exercises: item.exercises ?? null }),
     );
     logs.push(`Entrenamientos: ${r.synced} sincronizados, ${r.skipped} omitidos, ${r.failed} errores`);
 
     r = await syncLocalStorage(user.id, "activities", "athlos-activities",
-      (item: any) => ({ recorded_at: item.date, activity_type: item.type, distance: item.distance ? Number(item.distance) : null, moving_time: item.movingTime ? Number(item.movingTime) : null, elevation: item.elevation ? Number(item.elevation) : null, avg_heart_rate: item.avgHeartRate ? Number(item.avgHeartRate) : null, calories: item.calories ? Number(item.calories) : null }),
+      (item: any) => ({ recorded_at: item.recordedAt ?? item.date, activity_type: item.activityType ?? item.type, distance: item.distance ?? null, moving_time: item.movingTime ?? item.moving_time ?? null, elevation: item.elevation ?? null, avg_heart_rate: item.avgHeartRate ?? item.avg_heart_rate ?? null, calories: item.calories ?? null }),
     );
     logs.push(`Actividades: ${r.synced} sincronizadas, ${r.skipped} omitidas, ${r.failed} errores`);
 
@@ -134,96 +134,96 @@ export default function SettingsPage() {
 
   return (
     <PageLayout>
-          <header className="mb-8">
-            <p className="mb-2 text-sm font-semibold text-emerald-700">CONFIGURACIÓN</p>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-950">Tus objetivos</h1>
-            <p className="mt-2 text-slate-600">Define las referencias que usaran el dashboard y los semaforos.</p>
-          </header>
+      <header className="mb-8">
+        <p className="mb-2 text-sm font-semibold text-emerald-700">CONFIGURACIÓN</p>
+        <h1 className="text-3xl font-bold tracking-tight text-slate-950">Tus objetivos</h1>
+        <p className="mt-2 text-slate-600">Define las referencias que usarán el dashboard y los semáforos.</p>
+      </header>
 
-          <form onSubmit={submit}>
-            <Card className="border-slate-200 shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><SlidersHorizontal className="size-5 text-emerald-700" />Objetivos del proyecto</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-6 p-5 pt-0 sm:grid-cols-2">
-                {fields.map(({ key, label, detail, unit }) => (
-                  <label key={key}>
-                    <span className="text-sm font-semibold text-slate-800">{label}</span>
-                    <span className="mt-1 block text-xs text-slate-500">{detail}</span>
-                    <span className="relative mt-3 block">
-                      <input required type="number" min="0" step="any" value={goals[key]}
-                        onChange={(event) => setGoals({ ...goals, [key]: event.target.value })}
-                        className="w-full rounded-xl border border-slate-200 px-3 py-3 outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100" />
-                      <span className="pointer-events-none absolute right-3 top-3 text-sm text-slate-400">{unit}</span>
-                    </span>
-                  </label>
-                ))}
-              </CardContent>
-            </Card>
-            <div className="mt-6 flex flex-wrap items-center gap-4">
-              <button className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-800">
-                <Save className="size-4" />Guardar objetivos
-              </button>
-              {saved && <span className="text-sm font-medium text-emerald-700">Objetivos guardados</span>}
+      <form onSubmit={submit}>
+        <Card className="border-slate-200 shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><SlidersHorizontal className="size-5 text-emerald-700" />Objetivos del proyecto</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-6 p-5 pt-0 sm:grid-cols-2">
+            {fields.map(({ key, label, detail, unit }) => (
+              <label key={key}>
+                <span className="text-sm font-semibold text-slate-800">{label}</span>
+                <span className="mt-1 block text-xs text-slate-500">{detail}</span>
+                <span className="relative mt-3 block">
+                  <input type="number" min="0" step="any" value={goals[key] ?? ""}
+                    onChange={(event) => setGoals({ ...goals, [key]: event.target.value ? Number(event.target.value) : undefined })}
+                    className="w-full rounded-xl border border-slate-200 px-3 py-3 outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100" />
+                  <span className="pointer-events-none absolute right-3 top-3 text-sm text-slate-400">{unit}</span>
+                </span>
+              </label>
+            ))}
+          </CardContent>
+        </Card>
+        <div className="mt-6 flex flex-wrap items-center gap-4">
+          <button className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-800">
+            <Save className="size-4" />Guardar objetivos
+          </button>
+          {saved && <span className="text-sm font-medium text-emerald-700">Objetivos guardados</span>}
+        </div>
+      </form>
+
+      <Card className="mt-8 border-slate-200 shadow-sm">
+        <CardHeader><CardTitle>Copia de seguridad</CardTitle></CardHeader>
+        <CardContent className="space-y-4 p-5 pt-0">
+          <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="max-w-xl text-sm leading-6 text-slate-600">Descarga tus datos en un único archivo.</p>
+            <button type="button" onClick={exportData}
+              className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+              <Download className="size-4" />Descargar copia
+            </button>
+          </div>
+          <hr className="border-slate-200" />
+          <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-slate-800">Restaurar datos</p>
+              <p className="text-xs text-slate-500">Selecciona un archivo de respaldo.</p>
             </div>
-          </form>
+            <input ref={fileRef} type="file" accept=".json" onChange={importData} className="hidden" />
+            <button type="button" onClick={() => fileRef.current?.click()}
+              className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+              <Upload className="size-4" />Importar respaldo
+            </button>
+          </div>
+          {importError && <p className="text-sm font-medium text-rose-600">{importError}</p>}
+          {imported && <p className="text-sm font-medium text-emerald-700">Datos restaurados. Recargando...</p>}
+        </CardContent>
+      </Card>
 
-          <Card className="mt-8 border-slate-200 shadow-sm">
-            <CardHeader><CardTitle>Copia de seguridad</CardTitle></CardHeader>
-            <CardContent className="space-y-4 p-5 pt-0">
-              <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <p className="max-w-xl text-sm leading-6 text-slate-600">Descarga tus datos en un unico archivo.</p>
-                <button type="button" onClick={exportData}
-                  className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-                  <Download className="size-4" />Descargar copia
-                </button>
-              </div>
-              <hr className="border-slate-200" />
-              <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-slate-800">Restaurar datos</p>
-                  <p className="text-xs text-slate-500">Selecciona un archivo de respaldo.</p>
-                </div>
-                <input ref={fileRef} type="file" accept=".json" onChange={importData} className="hidden" />
-                <button type="button" onClick={() => fileRef.current?.click()}
-                  className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-                  <Upload className="size-4" />Importar respaldo
-                </button>
-              </div>
-              {importError && <p className="text-sm font-medium text-rose-600">{importError}</p>}
-              {imported && <p className="text-sm font-medium text-emerald-700">Datos restaurados. Recargando...</p>}
-            </CardContent>
-          </Card>
+      <Card className="mt-8 border-slate-200 shadow-sm">
+        <CardHeader><CardTitle>Sincronizar con Supabase</CardTitle></CardHeader>
+        <CardContent className="space-y-4 p-5 pt-0">
+          <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-slate-800">Subir datos locales a la nube</p>
+              <p className="text-xs text-slate-500">Sincroniza todos los datos guardados en el dispositivo con Supabase.</p>
+            </div>
+            <button type="button" disabled={syncing} onClick={syncToSupabase}
+              className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-50">
+              <RefreshCw className={`size-4 ${syncing ? "animate-spin" : ""}`} />{syncing ? "Sincronizando..." : "Sincronizar"}
+            </button>
+          </div>
+          {syncResult && <pre className="whitespace-pre-wrap rounded-xl bg-slate-50 p-3 text-xs text-slate-600">{syncResult}</pre>}
+        </CardContent>
+      </Card>
 
-          <Card className="mt-8 border-slate-200 shadow-sm">
-            <CardHeader><CardTitle>Sincronizar con Supabase</CardTitle></CardHeader>
-            <CardContent className="space-y-4 p-5 pt-0">
-              <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-slate-800">Subir datos locales a la nube</p>
-                  <p className="text-xs text-slate-500">Sincroniza todos los datos guardados en el dispositivo con Supabase.</p>
-                </div>
-                <button type="button" disabled={syncing} onClick={syncToSupabase}
-                  className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-50">
-                  <RefreshCw className={`size-4 ${syncing ? "animate-spin" : ""}`} />{syncing ? "Sincronizando..." : "Sincronizar"}
-                </button>
-              </div>
-              {syncResult && <pre className="whitespace-pre-wrap rounded-xl bg-slate-50 p-3 text-xs text-slate-600">{syncResult}</pre>}
-            </CardContent>
-          </Card>
-
-          <Card className="mt-8 border-slate-200 shadow-sm">
-            <CardContent className="flex items-center justify-between p-5">
-              <div>
-                <p className="text-sm font-semibold text-slate-800">Cerrar sesion</p>
-                <p className="text-xs text-slate-500">Desconecta tu cuenta en este dispositivo.</p>
-              </div>
-              <button type="button" onClick={logout}
-                className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-white px-4 py-3 text-sm font-semibold text-rose-700 hover:bg-rose-50">
-                <LogOut className="size-4" />Salir
-              </button>
-            </CardContent>
-          </Card>
+      <Card className="mt-8 border-slate-200 shadow-sm">
+        <CardContent className="flex items-center justify-between p-5">
+          <div>
+            <p className="text-sm font-semibold text-slate-800">Cerrar sesión</p>
+            <p className="text-xs text-slate-500">Desconecta tu cuenta en este dispositivo.</p>
+          </div>
+          <button type="button" onClick={logout}
+            className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-white px-4 py-3 text-sm font-semibold text-rose-700 hover:bg-rose-50">
+            <LogOut className="size-4" />Salir
+          </button>
+        </CardContent>
+      </Card>
     </PageLayout>
   );
 }
