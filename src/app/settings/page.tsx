@@ -7,6 +7,7 @@ import { PageLayout } from "@/components/layout/page-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
+import { syncLocalStorage } from "@/lib/sync-queue";
 
 type Goals = { targetWeight: string; targetWaist: string; targetSteps: string; targetStrength: string; targetAlcohol: string };
 const initial: Goals = { targetWeight: "87", targetWaist: "95", targetSteps: "8000", targetStrength: "3", targetAlcohol: "0" };
@@ -99,94 +100,33 @@ export default function SettingsPage() {
     setSyncResult("Sincronizando...");
     const logs: string[] = [];
 
-    const checkIns = JSON.parse(localStorage.getItem("athlos-checkins") ?? "[]");
-    if (Array.isArray(checkIns)) {
-      for (const item of checkIns) {
-        const { error } = await getSupabase().from("check_ins").upsert({
-          user_id: user.id, recorded_at: item.recordedAt?.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
-          weekly_weight: item.weeklyWeight ? Number(item.weeklyWeight) : null,
-          sunday_weight: item.sundayWeight ? Number(item.sundayWeight) : null,
-          waist: item.waist ? Number(item.waist) : null,
-          strength_sessions: item.strength ? Number(item.strength) : null,
-          cardio_minutes: item.cardio ? Number(item.cardio) : null,
-          average_steps: item.steps ? Number(item.steps) : null,
-          alcohol_ml: item.alcohol ? Number(item.alcohol) : null,
-          energy: item.energy ? Number(item.energy) : null,
-          hunger: item.hunger ? Number(item.hunger) : null,
-          sleep: item.sleep ? Number(item.sleep) : null,
-          comments: item.comments || null,
-        }, { onConflict: "user_id, recorded_at" });
-        if (error) logs.push("Check-in error: " + error.message);
-      }
-      logs.push("Check-ins sincronizados: " + checkIns.length);
-    }
+    let r = await syncLocalStorage(user.id, "check_ins", "athlos-checkins",
+      (item: any) => ({ recorded_at: item.recordedAt?.slice(0, 10) ?? new Date().toISOString().slice(0, 10), weekly_weight: item.weeklyWeight ? Number(item.weeklyWeight) : null, sunday_weight: item.sundayWeight ? Number(item.sundayWeight) : null, waist: item.waist ? Number(item.waist) : null, strength_sessions: item.strength ? Number(item.strength) : null, cardio_minutes: item.cardio ? Number(item.cardio) : null, average_steps: item.steps ? Number(item.steps) : null, alcohol_ml: item.alcohol ? Number(item.alcohol) : null, energy: item.energy ? Number(item.energy) : null, hunger: item.hunger ? Number(item.hunger) : null, sleep: item.sleep ? Number(item.sleep) : null, comments: item.comments || null }),
+      "user_id, recorded_at",
+    );
+    logs.push(`Check-ins: ${r.synced} sincronizados, ${r.skipped} omitidos, ${r.failed} errores`);
 
-    const labs = JSON.parse(localStorage.getItem("athlos-labs") ?? "[]");
-    if (Array.isArray(labs)) {
-      for (const item of labs) {
-        const { error } = await getSupabase().from("lab_results").upsert({
-          user_id: user.id, tested_at: item.date,
-          alt: item.alt ? Number(item.alt) : null, ast: item.ast ? Number(item.ast) : null,
-          ggt: item.ggt ? Number(item.ggt) : null, ldl: item.ldl ? Number(item.ldl) : null,
-          hdl: item.hdl ? Number(item.hdl) : null, triglycerides: item.triglycerides ? Number(item.triglycerides) : null,
-          glucose: item.glucose ? Number(item.glucose) : null,
-        }, { onConflict: "user_id, tested_at" });
-        if (error) logs.push("Lab error: " + error.message);
-      }
-      logs.push("Analiticas sincronizadas: " + labs.length);
-    }
+    r = await syncLocalStorage(user.id, "lab_results", "athlos-labs",
+      (item: any) => ({ tested_at: item.date, alt: item.alt ? Number(item.alt) : null, ast: item.ast ? Number(item.ast) : null, ggt: item.ggt ? Number(item.ggt) : null, ldl: item.ldl ? Number(item.ldl) : null, hdl: item.hdl ? Number(item.hdl) : null, triglycerides: item.triglycerides ? Number(item.triglycerides) : null, glucose: item.glucose ? Number(item.glucose) : null }),
+      "user_id, tested_at",
+    );
+    logs.push(`Analíticas: ${r.synced} sincronizados, ${r.skipped} omitidos, ${r.failed} errores`);
 
-    const zepp = JSON.parse(localStorage.getItem("athlos-zepp-history") ?? "[]");
-    if (Array.isArray(zepp)) {
-      for (const item of zepp) {
-        const { error } = await getSupabase().from("zepp_metrics").upsert({
-          user_id: user.id, recorded_at: item.date,
-          weight: item.weight ? Number(item.weight) : null, body_fat: item.bodyFat ? Number(item.bodyFat) : null,
-          muscle_mass: item.muscleMass ? Number(item.muscleMass) : null, water: item.water ? Number(item.water) : null,
-          visceral_fat: item.visceralFat ? Number(item.visceralFat) : null, bmr: item.bmr ? Number(item.bmr) : null,
-          sleep_hours: item.sleepHours ? Number(item.sleepHours) : null,
-          sleep_deep: item.sleepDeep ? Number(item.sleepDeep) : null,
-          sleep_rem: item.sleepRem ? Number(item.sleepRem) : null,
-          resting_heart_rate: item.restingHeartRate ? Number(item.restingHeartRate) : null,
-          steps: item.steps ? Number(item.steps) : null,
-        }, { onConflict: "user_id, recorded_at" });
-        if (error) logs.push("Zepp error: " + error.message);
-      }
-      logs.push("Zepp sincronizado: " + zepp.length);
-    }
+    r = await syncLocalStorage(user.id, "zepp_metrics", "athlos-zepp-history",
+      (item: any) => ({ recorded_at: item.date, weight: item.weight ? Number(item.weight) : null, body_fat: item.bodyFat ? Number(item.bodyFat) : null, muscle_mass: item.muscleMass ? Number(item.muscleMass) : null, water: item.water ? Number(item.water) : null, visceral_fat: item.visceralFat ? Number(item.visceralFat) : null, bmr: item.bmr ? Number(item.bmr) : null, sleep_hours: item.sleepHours ? Number(item.sleepHours) : null, sleep_deep: item.sleepDeep ? Number(item.sleepDeep) : null, sleep_rem: item.sleepRem ? Number(item.sleepRem) : null, resting_heart_rate: item.restingHeartRate ? Number(item.restingHeartRate) : null, steps: item.steps ? Number(item.steps) : null }),
+      "user_id, recorded_at",
+    );
+    logs.push(`Zepp: ${r.synced} sincronizados, ${r.skipped} omitidos, ${r.failed} errores`);
 
-    const workouts = JSON.parse(localStorage.getItem("athlos-workouts") ?? "[]");
-    if (Array.isArray(workouts)) {
-      for (const item of workouts) {
-        const groups = item.muscleGroups ? item.muscleGroups.split(",").map((s: string) => s.trim()).filter(Boolean) : [];
-        const { error } = await getSupabase().from("workout_sessions").insert({
-          user_id: user.id, recorded_at: item.date,
-          duration: item.duration ? Number(item.duration) : null,
-          volume: item.volume ? Number(item.volume) : null,
-          muscle_groups: groups,
-          exercises: item.exercises ? Number(item.exercises) : null,
-        });
-        if (error) logs.push("Workout error: " + error.message);
-      }
-      logs.push("Entrenamientos sincronizados: " + workouts.length);
-    }
+    r = await syncLocalStorage(user.id, "workout_sessions", "athlos-workouts",
+      (item: any) => ({ recorded_at: item.date, duration: item.duration ? Number(item.duration) : null, volume: item.volume ? Number(item.volume) : null, muscle_groups: item.muscleGroups ? item.muscleGroups.split(",").map((s: string) => s.trim()).filter(Boolean) : [], exercises: item.exercises ? Number(item.exercises) : null }),
+    );
+    logs.push(`Entrenamientos: ${r.synced} sincronizados, ${r.skipped} omitidos, ${r.failed} errores`);
 
-    const activities = JSON.parse(localStorage.getItem("athlos-activities") ?? "[]");
-    if (Array.isArray(activities)) {
-      for (const item of activities) {
-        const { error } = await getSupabase().from("activities").insert({
-          user_id: user.id, recorded_at: item.date,
-          activity_type: item.type,
-          distance: item.distance ? Number(item.distance) : null,
-          moving_time: item.movingTime ? Number(item.movingTime) : null,
-          elevation: item.elevation ? Number(item.elevation) : null,
-          avg_heart_rate: item.avgHeartRate ? Number(item.avgHeartRate) : null,
-          calories: item.calories ? Number(item.calories) : null,
-        });
-        if (error) logs.push("Activity error: " + error.message);
-      }
-      logs.push("Actividades sincronizadas: " + activities.length);
-    }
+    r = await syncLocalStorage(user.id, "activities", "athlos-activities",
+      (item: any) => ({ recorded_at: item.date, activity_type: item.type, distance: item.distance ? Number(item.distance) : null, moving_time: item.movingTime ? Number(item.movingTime) : null, elevation: item.elevation ? Number(item.elevation) : null, avg_heart_rate: item.avgHeartRate ? Number(item.avgHeartRate) : null, calories: item.calories ? Number(item.calories) : null }),
+    );
+    logs.push(`Actividades: ${r.synced} sincronizadas, ${r.skipped} omitidas, ${r.failed} errores`);
 
     setSyncResult(logs.join("\n"));
     setSyncing(false);
