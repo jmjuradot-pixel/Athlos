@@ -3,14 +3,14 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Workout } from "@/domain/Workout";
 import { workoutRepository } from "@/repositories/workoutRepository";
-import { useAuth } from "@/components/auth-provider";
+import { useUser } from "@/hooks/useUser";
 
 const empty: Workout = {
   recordedAt: new Date().toISOString().slice(0, 10),
 };
 
 export function useWorkouts() {
-  const { user } = useAuth();
+  const { user } = useUser();
   const [data, setData] = useState<Workout>(empty);
   const [history, setHistory] = useState<Workout[]>([]);
   const [saving, setSaving] = useState(false);

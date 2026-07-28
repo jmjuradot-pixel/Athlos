@@ -2,7 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { zeppMetricsRepository } from "@/repositories/zeppMetricsRepository";
-import { useAuth } from "@/components/auth-provider";
+import { useUser } from "@/hooks/useUser";
 
 type ZeppMetrics = {
   recordedAt: string;
@@ -38,7 +38,7 @@ const fields: { key: keyof Omit<ZeppMetrics, "recordedAt">; label: string; unit?
 ];
 
 export function useZepp() {
-  const { user } = useAuth();
+  const { user } = useUser();
   const [data, setData] = useState<ZeppMetrics>(empty);
   const [history, setHistory] = useState<ZeppMetrics[]>([]);
   const [saving, setSaving] = useState(false);

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { getPendingCount, getLocalCount, syncTable, syncLocalStorage } from "@/lib/sync-queue";
-import { useAuth } from "@/components/auth-provider";
+import { useUser } from "@/hooks/useUser";
 
 export function SyncButton({
   table, label, localStorageKey, transformRecord, onConflict,
@@ -14,7 +14,7 @@ export function SyncButton({
   transformRecord?: (r: any) => Record<string, unknown>;
   onConflict?: string;
 }) {
-  const { user } = useAuth();
+  const { user } = useUser();
   const [pending, setPending] = useState(0);
   const [localPending, setLocalPending] = useState(0);
   const [syncing, setSyncing] = useState(false);

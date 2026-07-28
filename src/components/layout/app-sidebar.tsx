@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { Activity, BarChart3, Bike, Camera, Database, Dumbbell, HeartPulse, LayoutDashboard, Menu, Settings, X } from "lucide-react";
+import { Activity, BarChart3, Bike, Bot, Camera, Database, Dumbbell, HeartPulse, LayoutDashboard, Menu, Settings, Timeline, X } from "lucide-react";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 
@@ -14,6 +14,8 @@ const links = [
   { label: "Progreso", icon: BarChart3, href: "/progress" },
   { label: "Salud", icon: HeartPulse, href: "/health" },
   { label: "Fotos", icon: Camera, href: "/photos" },
+  { label: "Informe IA", icon: Bot, href: "/ia-report" },
+  { label: "Historial", icon: Timeline, href: "/journal" },
   { label: "Importar", icon: Database, href: "/import" },
   { label: "Ajustes", icon: Settings, href: "/settings" },
 ];

@@ -5,8 +5,7 @@ import { useEffect, useState } from "react";
 import { Activity, ArrowDownRight, ArrowUpRight, Bike, ChevronRight, Dumbbell, Footprints, HeartPulse, Scale, Target, Wine } from "lucide-react";
 import { PageLayout } from "@/components/layout/page-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getSupabase } from "@/lib/supabase/client";
-import { useAuth } from "@/components/auth-provider";
+import { useUser } from "@/hooks/useUser";
 
 const fallbackMetrics = [
   { label: "Peso", value: "—", unit: "kg", detail: "Sin datos aún", icon: Scale, tone: "bg-emerald-50 text-emerald-700", positive: null },
@@ -18,36 +17,27 @@ const fallbackMetrics = [
 ];
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user } = useUser();
   const [metrics, setMetrics] = useState(fallbackMetrics);
 
   useEffect(() => {
-    async function load() {
-      const checkIn = JSON.parse(localStorage.getItem("athlos-latest-checkin") ?? "null");
-      const labs = JSON.parse(localStorage.getItem("athlos-latest-labs") ?? "null");
-      const goals = JSON.parse(localStorage.getItem("athlos-goals") ?? "null");
-      let checkInData = checkIn;
-      let labsData = labs;
+    const checkIn = JSON.parse(localStorage.getItem("athlos-latest-checkin") ?? "null");
+    const labs = JSON.parse(localStorage.getItem("athlos-latest-labs") ?? "null");
+    const goals = JSON.parse(localStorage.getItem("athlos-goals") ?? "null");
+    const checkInData = checkIn;
+    const labsData = labs;
+    const allCheckins = JSON.parse(localStorage.getItem("athlos-checkins") ?? "[]");
+    const weights = allCheckins.map((c: any) => c.weeklyWeight ?? c.weekly_weight).filter(Boolean);
+    const avgWeight = weights.length ? (weights.reduce((a: number, b: number) => a + b, 0) / weights.length).toFixed(1) : null;
 
-      if (user) {
-        const [checkinsRes, labsRes] = await Promise.all([
-          getSupabase().from("check_ins").select("*").eq("user_id", user.id).order("recorded_at", { ascending: false }).limit(1),
-          getSupabase().from("lab_results").select("*").eq("user_id", user.id).order("tested_at", { ascending: false }).limit(1),
-        ]);
-        if (checkinsRes.data?.[0]) checkInData = checkinsRes.data[0];
-        if (labsRes.data?.[0]) labsData = labsRes.data[0];
-      }
-
-      setMetrics([
-        { ...fallbackMetrics[0], value: checkInData?.weekly_weight ?? checkInData?.weeklyWeight ?? fallbackMetrics[0].value, detail: checkInData ? "Último check-in" : fallbackMetrics[0].detail },
+    setMetrics([
+        { ...fallbackMetrics[0], value: avgWeight ?? checkInData?.weeklyWeight ?? fallbackMetrics[0].value, detail: avgWeight ? `Media ${avgWeight} kg · ${allCheckins.length} registros` : checkInData ? "Último check-in" : fallbackMetrics[0].detail },
         { ...fallbackMetrics[1], value: checkInData?.waist ?? fallbackMetrics[1].value, detail: goals?.targetWaist ? `Objetivo: ${goals.targetWaist} cm` : fallbackMetrics[1].detail },
-        { ...fallbackMetrics[2], value: checkInData?.strength_sessions ?? checkInData?.strength ?? fallbackMetrics[2].value, unit: goals?.targetStrength ? `/ ${goals.targetStrength}` : fallbackMetrics[2].unit, detail: checkInData ? "Último check-in" : fallbackMetrics[2].detail },
-        { ...fallbackMetrics[3], value: checkInData?.average_steps ?? checkInData?.steps ? Number(checkInData?.average_steps ?? checkInData?.steps).toLocaleString("es-ES") : fallbackMetrics[3].value, detail: goals?.targetSteps ? `Objetivo: ${Number(goals.targetSteps).toLocaleString("es-ES")} pasos` : fallbackMetrics[3].detail },
-        { ...fallbackMetrics[4], value: checkInData?.alcohol_ml ?? checkInData?.alcohol ?? fallbackMetrics[4].value, detail: goals?.targetAlcohol !== undefined ? `Objetivo: ${goals.targetAlcohol} ml por semana` : fallbackMetrics[4].detail },
-        { ...fallbackMetrics[5], value: labsData?.alt ?? fallbackMetrics[5].value, unit: labsData ? "ALT / GPT" : fallbackMetrics[5].unit, detail: labsData?.tested_at ? `Analítica: ${new Date(labsData.tested_at).toLocaleDateString("es-ES")}` : labsData?.date ? `Analítica: ${new Date(labsData.date).toLocaleDateString("es-ES")}` : fallbackMetrics[5].detail },
+        { ...fallbackMetrics[2], value: checkInData?.strengthSessions ?? checkInData?.strength_sessions ?? fallbackMetrics[2].value, unit: goals?.targetStrength ? `/ ${goals.targetStrength}` : fallbackMetrics[2].unit, detail: checkInData ? "Último check-in" : fallbackMetrics[2].detail },
+        { ...fallbackMetrics[3], value: checkInData?.averageSteps ?? checkInData?.average_steps ? Number(checkInData?.averageSteps ?? checkInData?.average_steps).toLocaleString("es-ES") : fallbackMetrics[3].value, detail: goals?.targetSteps ? `Objetivo: ${Number(goals.targetSteps).toLocaleString("es-ES")} pasos` : fallbackMetrics[3].detail },
+        { ...fallbackMetrics[4], value: checkInData?.alcoholMl ?? checkInData?.alcohol_ml ?? fallbackMetrics[4].value, detail: goals?.targetAlcohol !== undefined ? `Objetivo: ${goals.targetAlcohol} ml por semana` : fallbackMetrics[4].detail },
+        { ...fallbackMetrics[5], value: labsData?.alt ?? fallbackMetrics[5].value, unit: labsData ? "ALT / GPT" : fallbackMetrics[5].unit, detail: labsData?.testedAt ? `Analítica: ${new Date(labsData.testedAt).toLocaleDateString("es-ES")}` : labsData?.tested_at ? `Analítica: ${new Date(labsData.tested_at).toLocaleDateString("es-ES")}` : fallbackMetrics[5].detail },
       ]);
-    }
-    load();
   }, [user]);
 
   return (

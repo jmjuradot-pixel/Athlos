@@ -5,10 +5,12 @@ import { Save } from "lucide-react";
 import { PageLayout, PageHeader } from "@/components/layout/page-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSupabase } from "@/lib/supabase/client";
-import { useAuth } from "@/components/auth-provider";
+import { useUser } from "@/hooks/useUser";
+import { eventBus } from "@/events";
+import { EventTypes } from "@/events/types";
 
 export default function ImportPage() {
-  const { user } = useAuth();
+  const { user } = useUser();
   const [json, setJson] = useState("");
   const [result, setResult] = useState("");
   const [saving, setSaving] = useState(false);
@@ -41,6 +43,7 @@ export default function ImportPage() {
         const history = JSON.parse(localStorage.getItem("athlos-zepp-history") ?? "[]");
         const next = [...history.filter((h: any) => h.date !== record.date), record];
         localStorage.setItem("athlos-zepp-history", JSON.stringify(next));
+        eventBus.emit(EventTypes.ZEPP_SYNCED, { ...record, date: record.date });
         logs.push("Zepp: importado");
 
         if (user) {
@@ -74,6 +77,7 @@ export default function ImportPage() {
           const history = JSON.parse(localStorage.getItem("athlos-workouts") ?? "[]");
           const next = [...history.filter((h: any) => h.date !== record.date), record];
           localStorage.setItem("athlos-workouts", JSON.stringify(next));
+          eventBus.emit(EventTypes.WORKOUT_IMPORTED, { recordedAt: session.date, duration: session.duration, volume: session.volume, muscleGroups: session.muscleGroups });
 
           if (user) {
             const { error } = await getSupabase().from("workout_sessions").insert({
@@ -102,6 +106,7 @@ export default function ImportPage() {
           const history = JSON.parse(localStorage.getItem("athlos-activities") ?? "[]");
           const next = [...history.filter((h: any) => h.date !== record.date), record];
           localStorage.setItem("athlos-activities", JSON.stringify(next));
+          eventBus.emit(EventTypes.ACTIVITY_ADDED, { recordedAt: activity.date, activityType: activity.type, distance: activity.distance, movingTime: activity.movingTime });
 
           if (user) {
             const { error } = await getSupabase().from("activities").insert({

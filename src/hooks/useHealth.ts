@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { LabResult } from "@/domain/LabResult";
 import { labsRepository } from "@/repositories/labsRepository";
-import { useAuth } from "@/components/auth-provider";
+import { useUser } from "@/hooks/useUser";
 
 const empty: LabResult = {
   testedAt: new Date().toISOString().slice(0, 10),
@@ -20,7 +20,7 @@ const fields: { key: keyof Omit<LabResult, "testedAt">; label: string; unit: str
 ];
 
 export function useHealth() {
-  const { user } = useAuth();
+  const { user } = useUser();
   const [data, setData] = useState<LabResult>(empty);
   const [history, setHistory] = useState<LabResult[]>([]);
   const [saving, setSaving] = useState(false);

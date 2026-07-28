@@ -1,14 +1,14 @@
 "use client";
 
 import { FormEvent, ChangeEvent, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Download, LogOut, RefreshCw, Save, SlidersHorizontal, Upload } from "lucide-react";
+import { Download, RefreshCw, Save, SlidersHorizontal, Upload } from "lucide-react";
 import { PageLayout } from "@/components/layout/page-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getSupabase } from "@/lib/supabase/client";
-import { useAuth } from "@/components/auth-provider";
 import { syncLocalStorage } from "@/lib/sync-queue";
+import { useUser } from "@/hooks/useUser";
 import { Goals } from "@/domain/Goals";
+import { eventBus } from "@/events";
+import { EventTypes } from "@/events/types";
 
 const initial: Goals = { targetWeight: 87, targetWaist: 95, targetSteps: 8000, targetStrength: 3, targetAlcohol: 0 };
 const fields: { key: keyof Goals; label: string; detail: string; unit: string }[] = [
@@ -20,8 +20,7 @@ const fields: { key: keyof Goals; label: string; detail: string; unit: string }[
 ];
 
 export default function SettingsPage() {
-  const router = useRouter();
-  const { user } = useAuth();
+  const { user } = useUser();
   const [goals, setGoals] = useState<Goals>(initial);
   const [saved, setSaved] = useState(false);
   const [imported, setImported] = useState(false);
@@ -38,13 +37,9 @@ export default function SettingsPage() {
   function submit(event: FormEvent) {
     event.preventDefault();
     localStorage.setItem("athlos-goals", JSON.stringify(goals));
+    eventBus.emit(EventTypes.GOAL_CHANGED, goals);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
-  }
-
-  async function logout() {
-    await getSupabase().auth.signOut();
-    router.push("/auth");
   }
 
   function exportData() {
@@ -212,18 +207,6 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card className="mt-8 border-slate-200 shadow-sm">
-        <CardContent className="flex items-center justify-between p-5">
-          <div>
-            <p className="text-sm font-semibold text-slate-800">Cerrar sesión</p>
-            <p className="text-xs text-slate-500">Desconecta tu cuenta en este dispositivo.</p>
-          </div>
-          <button type="button" onClick={logout}
-            className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-white px-4 py-3 text-sm font-semibold text-rose-700 hover:bg-rose-50">
-            <LogOut className="size-4" />Salir
-          </button>
-        </CardContent>
-      </Card>
     </PageLayout>
   );
 }

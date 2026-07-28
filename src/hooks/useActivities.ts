@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Activity } from "@/domain/Activity";
 import { activityRepository } from "@/repositories/activityRepository";
-import { useAuth } from "@/components/auth-provider";
+import { useUser } from "@/hooks/useUser";
 
 const activityTypes = ["Carrera", "Bici", "Natación", "Paseo", "Sesión", "Caminata", "Ruta", "Otro"];
 
@@ -13,7 +13,7 @@ const empty: Activity = {
 };
 
 export function useActivities() {
-  const { user } = useAuth();
+  const { user } = useUser();
   const [data, setData] = useState<Activity>(empty);
   const [history, setHistory] = useState<Activity[]>([]);
   const [saving, setSaving] = useState(false);

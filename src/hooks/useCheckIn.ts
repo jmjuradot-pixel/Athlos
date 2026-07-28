@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { CheckIn } from "@/domain/CheckIn";
 import { checkInRepository } from "@/repositories/checkInRepository";
-import { useAuth } from "@/components/auth-provider";
+import { useUser } from "@/hooks/useUser";
 
 const empty: CheckIn = {
   recordedAt: new Date().toISOString().slice(0, 10),
@@ -26,7 +26,7 @@ const ratingFields: { key: "energy" | "hunger" | "sleep"; label: string }[] = [
 ];
 
 export function useCheckIn() {
-  const { user } = useAuth();
+  const { user } = useUser();
   const [data, setData] = useState<CheckIn>(empty);
   const [history, setHistory] = useState<CheckIn[]>([]);
   const [saving, setSaving] = useState(false);
@@ -75,6 +75,5 @@ export function useCheckIn() {
     submit,
     fields,
     ratingFields,
-    latest: localStorage.getItem("athlos-latest-checkin"),
   };
 }
