@@ -57,7 +57,7 @@ export function useCheckIn() {
     const record: CheckIn = {
       recordedAt: new Date().toISOString().slice(0, 10),
       ...Object.fromEntries(
-        Object.entries(data).filter(([_, v]) => v !== "" && v !== undefined),
+        Object.entries(data).filter(([, v]) => v !== "" && v !== undefined),
       ),
     };
     await checkInRepository.save(user.id, record);
