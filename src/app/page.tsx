@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Activity, ArrowDownRight, ArrowUpRight, Bike, ChevronRight, Dumbbell, Footprints, HeartPulse, Scale, Target, Wine } from "lucide-react";
-import { AppSidebar } from "@/components/layout/app-sidebar";
+import { PageLayout } from "@/components/layout/page-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
@@ -51,10 +51,7 @@ export default function DashboardPage() {
   }, [user]);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <AppSidebar />
-      <main className="lg:pl-72">
-        <div className="mx-auto max-w-7xl px-4 py-7 sm:px-8 lg:px-10">
+    <PageLayout>
           <header className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="mb-2 text-sm font-semibold text-emerald-700">SEMANA 1 · PROYECTO HÍGADO SANO</p>
@@ -141,9 +138,7 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </section>
-        </div>
-      </main>
-    </div>
+    </PageLayout>
   );
 }
 

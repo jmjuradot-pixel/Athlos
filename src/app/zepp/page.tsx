@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { Save } from "lucide-react";
-import { AppSidebar } from "@/components/layout/app-sidebar";
+import { PageLayout, PageHeader } from "@/components/layout/page-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
@@ -80,14 +80,8 @@ export default function ZeppPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50"><AppSidebar />
-      <main className="lg:pl-72">
-        <div className="mx-auto max-w-5xl px-4 py-7 sm:px-8 lg:px-10">
-          <header className="mb-8">
-            <p className="mb-2 text-sm font-semibold text-emerald-700">ZEPP</p>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-950">Métricas corporales</h1>
-            <p className="mt-2 text-slate-600">Composición corporal, sueño y actividad diaria desde Zepp / Mi Fitness.</p>
-          </header>
+    <PageLayout>
+      <PageHeader tag="ZEPP" title="Métricas corporales" description="Composición corporal, sueño y actividad diaria desde Zepp / Mi Fitness." />
 
           <form onSubmit={submit}>
             <Card className="border-slate-200 shadow-sm">
@@ -142,8 +136,6 @@ export default function ZeppPage() {
               </div>
             </section>
           )}
-        </div>
-      </main>
-    </div>
+    </PageLayout>
   );
 }

@@ -3,7 +3,7 @@
 import { FormEvent, ChangeEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Download, LogOut, RefreshCw, Save, SlidersHorizontal, Upload } from "lucide-react";
-import { AppSidebar } from "@/components/layout/app-sidebar";
+import { PageLayout } from "@/components/layout/page-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
@@ -193,10 +193,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <AppSidebar />
-      <main className="lg:pl-72">
-        <div className="mx-auto max-w-4xl px-4 py-7 sm:px-8 lg:px-10">
+    <PageLayout>
           <header className="mb-8">
             <p className="mb-2 text-sm font-semibold text-emerald-700">CONFIGURACIÓN</p>
             <h1 className="text-3xl font-bold tracking-tight text-slate-950">Tus objetivos</h1>
@@ -287,8 +284,6 @@ export default function SettingsPage() {
               </button>
             </CardContent>
           </Card>
-        </div>
-      </main>
-    </div>
+    </PageLayout>
   );
 }

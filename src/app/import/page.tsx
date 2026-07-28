@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { Save } from "lucide-react";
-import { AppSidebar } from "@/components/layout/app-sidebar";
+import { PageLayout, PageHeader } from "@/components/layout/page-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
@@ -128,14 +128,8 @@ export default function ImportPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50"><AppSidebar />
-      <main className="lg:pl-72">
-        <div className="mx-auto max-w-4xl px-4 py-7 sm:px-8 lg:px-10">
-          <header className="mb-8">
-            <p className="mb-2 text-sm font-semibold text-emerald-700">IMPORTAR</p>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-950">Importar datos</h1>
-            <p className="mt-2 text-slate-600">Pega el JSON de Zepp, Fitbod o Strava para importar los datos automáticamente.</p>
-          </header>
+    <PageLayout>
+      <PageHeader tag="IMPORTAR" title="Importar datos" description="Pega el JSON de Zepp, Fitbod o Strava para importar los datos automáticamente." />
 
           <form onSubmit={submit}>
             <Card className="border-slate-200 shadow-sm">
@@ -149,8 +143,6 @@ export default function ImportPage() {
             </div>
             {result && <pre className="mt-6 whitespace-pre-wrap rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700">{result}</pre>}
           </form>
-        </div>
-      </main>
-    </div>
+    </PageLayout>
   );
 }
