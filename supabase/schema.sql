@@ -62,42 +62,5 @@ create table public.activities (
   unique(user_id, recorded_at)
 );
 
-alter table public.profiles enable row level security;
-alter table public.check_ins enable row level security;
-alter table public.lab_results enable row level security;
-alter table public.zepp_metrics enable row level security;
-alter table public.workout_sessions enable row level security;
-alter table public.activities enable row level security;
-
-create policy "Users manage own profile" on public.profiles for all
-  using (auth.uid() = id) with check (auth.uid() = id);
-
-create policy "Users manage own check-ins" on public.check_ins for all
-  using (auth.uid() = user_id) with check (auth.uid() = user_id);
-
-create policy "Users manage own lab results" on public.lab_results for all
-  using (auth.uid() = user_id) with check (auth.uid() = user_id);
-
-create policy "Users manage own zepp metrics" on public.zepp_metrics for all
-  using (auth.uid() = user_id) with check (auth.uid() = user_id);
-
-create policy "Users manage own workout sessions" on public.workout_sessions for all
-  using (auth.uid() = user_id) with check (auth.uid() = user_id);
-
-create policy "Users manage own activities" on public.activities for all
-  using (auth.uid() = user_id) with check (auth.uid() = user_id);
-
--- Trigger para crear perfil automáticamente al registrarse
-create or replace function public.handle_new_user()
-returns trigger as $$
-begin
-  insert into public.profiles (id, display_name)
-  values (new.id, new.raw_user_meta_data ->> 'display_name');
-  return new;
-end;
-$$ language plpgsql security definer;
-
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function public.handle_new_user();
+-- Athlos es single-user: no se usa autenticacion, RLS deshabilitado
+-- El anon key puede leer y escribir directamente.
