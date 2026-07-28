@@ -6,6 +6,8 @@ import { PageLayout, PageHeader } from "@/components/layout/page-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
+import { saveWithQueue } from "@/lib/sync-queue";
+import { SyncButton } from "@/components/sync-indicator";
 
 type Workout = { date: string; duration: string; volume: string; muscleGroups: string; exercises: string };
 const initial: Workout = { date: new Date().toISOString().slice(0, 10), duration: "", volume: "", muscleGroups: "", exercises: "" };
@@ -41,14 +43,14 @@ export default function WorkoutsPage() {
     localStorage.setItem("athlos-workouts", JSON.stringify(next));
     if (user) {
       const groups = data.muscleGroups ? data.muscleGroups.split(",").map((s) => s.trim()).filter(Boolean) : [];
-      const { error } = await getSupabase().from("workout_sessions").insert({
-        user_id: user.id, recorded_at: data.date,
+      const result = await saveWithQueue(user.id, "workout_sessions", {
+        recorded_at: data.date,
         duration: data.duration ? Number(data.duration) : null,
         volume: data.volume ? Number(data.volume) : null,
         muscle_groups: groups,
         exercises: data.exercises ? Number(data.exercises) : null,
       });
-      if (error) console.error("Supabase workout_sessions error:", error);
+      if (result.queued) console.log("Workout encolado offline");
     }
     setSaving(false);
     setSaved(true);
@@ -74,7 +76,7 @@ export default function WorkoutsPage() {
             </Card>
             <div className="mt-6 flex items-center gap-4">
               <button disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:opacity-50"><Save className="size-4" />{saving ? "Guardando..." : saved ? "Guardado" : "Guardar"}</button>
-              {saved && <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-700">Datos guardados</span>}
+              {saved && <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-700">Datos guardados</span>}<SyncButton table="workout_sessions" label="entrenamientos" />
             </div>
           </form>
 

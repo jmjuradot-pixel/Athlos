@@ -5,6 +5,8 @@ import { Check, Save } from "lucide-react";
 import { PageLayout, PageHeader } from "@/components/layout/page-layout";
 import { getSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
+import { saveWithQueue } from "@/lib/sync-queue";
+import { SyncButton } from "@/components/sync-indicator";
 
 type CheckIn = { weeklyWeight: string; sundayWeight: string; waist: string; strength: string; cardio: string; steps: string; alcohol: string; energy: string; hunger: string; sleep: string; comments: string };
 const initial: CheckIn = { weeklyWeight: "", sundayWeight: "", waist: "", strength: "", cardio: "", steps: "", alcohol: "", energy: "", hunger: "", sleep: "", comments: "" };
@@ -56,8 +58,8 @@ export default function CheckInPage() {
     localStorage.setItem("athlos-checkins", JSON.stringify(nextHistory));
     if (user) {
       const today = new Date().toISOString().slice(0, 10);
-      const { error } = await getSupabase().from("check_ins").upsert({
-        user_id: user.id, recorded_at: today,
+      const result = await saveWithQueue(user.id, "check_ins", {
+        recorded_at: today,
         weekly_weight: data.weeklyWeight ? Number(data.weeklyWeight) : null,
         sunday_weight: data.sundayWeight ? Number(data.sundayWeight) : null,
         waist: data.waist ? Number(data.waist) : null,
@@ -69,13 +71,13 @@ export default function CheckInPage() {
         hunger: data.hunger ? Number(data.hunger) : null,
         sleep: data.sleep ? Number(data.sleep) : null,
         comments: data.comments || null,
-      }, { onConflict: "user_id, recorded_at" });
-      if (error) console.error("Supabase check_ins error:", error);
+      }, "user_id, recorded_at");
+      if (result.queued) console.log("Check-in encolado offline");
     }
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   }
 
-  return <PageLayout><PageHeader tag="CHECK-IN" title="Check-in semanal" description="Completa lo esencial. Menos de dos minutos y tendremos una fotografía útil de tu semana." /><form onSubmit={submit} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7"><div className="grid gap-6 sm:grid-cols-2">{fields.map(({ key, label, hint, suffix, type }) => <label key={key} className="block"><span className="text-sm font-semibold text-slate-800">{label}</span><span className="mt-1 block text-xs text-slate-500">{hint}</span><span className="relative mt-3 block"><input required type={type} min="0" step="any" value={data[key]} onChange={(event) => setData({ ...data, [key]: event.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-3 text-slate-900 outline-none transition focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100" /><span className="pointer-events-none absolute right-3 top-3 text-sm text-slate-400">{suffix}</span></span></label>)}</div><div className="mt-7 grid gap-6 sm:grid-cols-3">{(["energy", "hunger", "sleep"] as const).map((key) => <label key={key}><span className="text-sm font-semibold text-slate-800">{key === "energy" ? "Energía" : key === "hunger" ? "Hambre" : "Sueño"} <span className="font-normal text-slate-500">(1–10)</span></span><input required type="number" min="1" max="10" value={data[key]} onChange={(event) => setData({ ...data, [key]: event.target.value })} className="mt-3 w-full rounded-xl border border-slate-200 px-3 py-3 outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100" /></label>)}</div><label className="mt-7 block"><span className="text-sm font-semibold text-slate-800">Comentarios</span><textarea value={data.comments} onChange={(event) => setData({ ...data, comments: event.target.value })} className="mt-3 w-full rounded-xl border border-slate-200 px-3 py-3 outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100" rows={3} /></label><div className="mt-7 flex items-center gap-4"><button disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-50">{saving ? "Guardando..." : <><Save className="size-4" />Guardar check-in</>}</button>{saved && <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-700"><Check className="size-4" />Guardado</span>}</div></form></PageLayout>;
+  return <PageLayout><PageHeader tag="CHECK-IN" title="Check-in semanal" description="Completa lo esencial. Menos de dos minutos y tendremos una fotografía útil de tu semana." /><form onSubmit={submit} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7"><div className="grid gap-6 sm:grid-cols-2">{fields.map(({ key, label, hint, suffix, type }) => <label key={key} className="block"><span className="text-sm font-semibold text-slate-800">{label}</span><span className="mt-1 block text-xs text-slate-500">{hint}</span><span className="relative mt-3 block"><input required type={type} min="0" step="any" value={data[key]} onChange={(event) => setData({ ...data, [key]: event.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-3 text-slate-900 outline-none transition focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100" /><span className="pointer-events-none absolute right-3 top-3 text-sm text-slate-400">{suffix}</span></span></label>)}</div><div className="mt-7 grid gap-6 sm:grid-cols-3">{(["energy", "hunger", "sleep"] as const).map((key) => <label key={key}><span className="text-sm font-semibold text-slate-800">{key === "energy" ? "Energía" : key === "hunger" ? "Hambre" : "Sueño"} <span className="font-normal text-slate-500">(1–10)</span></span><input required type="number" min="1" max="10" value={data[key]} onChange={(event) => setData({ ...data, [key]: event.target.value })} className="mt-3 w-full rounded-xl border border-slate-200 px-3 py-3 outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100" /></label>)}</div><label className="mt-7 block"><span className="text-sm font-semibold text-slate-800">Comentarios</span><textarea value={data.comments} onChange={(event) => setData({ ...data, comments: event.target.value })} className="mt-3 w-full rounded-xl border border-slate-200 px-3 py-3 outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100" rows={3} /></label><div className="mt-7 flex items-center gap-4"><button disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-50">{saving ? "Guardando..." : <><Save className="size-4" />Guardar check-in</>}</button>{saved && <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-700"><Check className="size-4" />Guardado</span>}<SyncButton table="check_ins" label="check-ins" /></div></form></PageLayout>;
 }

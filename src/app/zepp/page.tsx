@@ -6,6 +6,8 @@ import { PageLayout, PageHeader } from "@/components/layout/page-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
+import { saveWithQueue } from "@/lib/sync-queue";
+import { SyncButton } from "@/components/sync-indicator";
 
 type ZeppData = { date: string; weight: string; bodyFat: string; muscleMass: string; water: string; visceralFat: string; bmr: string; sleepHours: string; sleepDeep: string; sleepRem: string; restingHeartRate: string; steps: string };
 const initial: ZeppData = { date: new Date().toISOString().slice(0, 10), weight: "", bodyFat: "", muscleMass: "", water: "", visceralFat: "", bmr: "", sleepHours: "", sleepDeep: "", sleepRem: "", restingHeartRate: "", steps: "" };
@@ -58,8 +60,8 @@ export default function ZeppPage() {
     localStorage.setItem("athlos-zepp", JSON.stringify(data));
     localStorage.setItem("athlos-zepp-history", JSON.stringify(next));
     if (user) {
-      const { error } = await getSupabase().from("zepp_metrics").upsert({
-        user_id: user.id, recorded_at: data.date,
+      const result = await saveWithQueue(user.id, "zepp_metrics", {
+        recorded_at: data.date,
         weight: data.weight ? Number(data.weight) : null,
         body_fat: data.bodyFat ? Number(data.bodyFat) : null,
         muscle_mass: data.muscleMass ? Number(data.muscleMass) : null,
@@ -71,8 +73,8 @@ export default function ZeppPage() {
         sleep_rem: data.sleepRem ? Number(data.sleepRem) : null,
         resting_heart_rate: data.restingHeartRate ? Number(data.restingHeartRate) : null,
         steps: data.steps ? Number(data.steps) : null,
-      }, { onConflict: "user_id, recorded_at" });
-      if (error) console.error("Supabase zepp_metrics error:", error);
+      }, "user_id, recorded_at");
+      if (result.queued) console.log("Zepp metrics encolado offline");
     }
     setSaving(false);
     setSaved(true);
@@ -107,7 +109,7 @@ export default function ZeppPage() {
             </Card>
             <div className="mt-6 flex items-center gap-4">
               <button disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:opacity-50"><Save className="size-4" />{saving ? "Guardando..." : saved ? "Guardado" : "Guardar"}</button>
-              {saved && <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-700">Datos guardados</span>}
+              {saved && <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-700">Datos guardados</span>}<SyncButton table="zepp_metrics" label="métricas" />
             </div>
           </form>
 
