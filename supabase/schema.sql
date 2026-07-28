@@ -47,7 +47,8 @@ create table public.workout_sessions (
   duration smallint, volume integer,
   muscle_groups jsonb default '[]'::jsonb,
   exercises smallint,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  unique(user_id, recorded_at)
 );
 
 create table public.activities (
@@ -57,7 +58,8 @@ create table public.activities (
   activity_type text not null,
   distance numeric(6,1), moving_time smallint, elevation smallint,
   avg_heart_rate smallint, calories smallint,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  unique(user_id, recorded_at)
 );
 
 alter table public.profiles enable row level security;

@@ -30,7 +30,7 @@ export default function ActivitiesPage() {
         <div className="mt-6 flex items-center gap-4">
           <button disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:opacity-50"><Save className="size-4" />{saving ? "Guardando..." : saved ? "Guardado" : "Guardar"}</button>
           {saved && <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-700">Datos guardados</span>}
-          <SyncButton table="activities" label="actividades" localStorageKey="athlos-activities" onConflict={undefined} transformRecord={(r: any) => ({ recorded_at: r.recordedAt, activity_type: r.activityType, distance: r.distance ?? null, moving_time: r.movingTime ?? null, elevation: r.elevation ?? null, avg_heart_rate: r.avgHeartRate ?? null, calories: r.calories ?? null })} />
+          <SyncButton table="activities" label="actividades" localStorageKey="athlos-activities" onConflict="user_id, recorded_at" transformRecord={(r: any) => ({ recorded_at: r.recordedAt, activity_type: r.activityType, distance: r.distance ?? null, moving_time: r.movingTime ?? null, elevation: r.elevation ?? null, avg_heart_rate: r.avgHeartRate ?? null, calories: r.calories ?? null })} />
         </div>
       </form>
 

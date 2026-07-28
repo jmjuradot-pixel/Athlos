@@ -11,6 +11,24 @@ type QueueItem = {
 
 const QUEUE_KEY = "athlos-sync-queue";
 
+// Migración única: limpia onConflict de items antiguos en cola
+if (typeof window !== "undefined") {
+  try {
+    const raw = localStorage.getItem(QUEUE_KEY);
+    if (raw) {
+      const queue = JSON.parse(raw);
+      const next = queue.map((item: any) => {
+        // Workouts y activities deben usar upsert con user_id, recorded_at
+        if (item.table === "workout_sessions" || item.table === "activities") {
+          return { ...item, onConflict: "user_id, recorded_at" };
+        }
+        return item;
+      });
+      localStorage.setItem(QUEUE_KEY, JSON.stringify(next));
+    }
+  } catch { /* ignore */ }
+}
+
 function getQueue(): QueueItem[] {
   try {
     return JSON.parse(localStorage.getItem(QUEUE_KEY) ?? "[]");

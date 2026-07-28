@@ -49,7 +49,7 @@ export const activityRepository = {
       .sort((a, b) => a.recordedAt.localeCompare(b.recordedAt));
     storage.set(StorageKeys.ACTIVITIES, next);
 
-    await saveWithQueue(userId, "activities", toDB(data));
+    await saveWithQueue(userId, "activities", toDB(data), "user_id, recorded_at");
     eventBus.emit(EventTypes.ACTIVITY_ADDED, data);
   },
 

@@ -115,11 +115,13 @@ export default function SettingsPage() {
 
     r = await syncLocalStorage(user.id, "workout_sessions", "athlos-workouts",
       (item: any) => ({ recorded_at: item.recordedAt ?? item.date, duration: item.duration ?? null, volume: item.volume ?? null, muscle_groups: item.muscleGroups ?? item.muscle_groups ?? [], exercises: item.exercises ?? null }),
+      "user_id, recorded_at",
     );
     logs.push(`Entrenamientos: ${r.synced} sincronizados, ${r.skipped} omitidos, ${r.failed} errores`);
 
     r = await syncLocalStorage(user.id, "activities", "athlos-activities",
       (item: any) => ({ recorded_at: item.recordedAt ?? item.date, activity_type: item.activityType ?? item.type, distance: item.distance ?? null, moving_time: item.movingTime ?? item.moving_time ?? null, elevation: item.elevation ?? null, avg_heart_rate: item.avgHeartRate ?? item.avg_heart_rate ?? null, calories: item.calories ?? null }),
+      "user_id, recorded_at",
     );
     logs.push(`Actividades: ${r.synced} sincronizadas, ${r.skipped} omitidas, ${r.failed} errores`);
 

@@ -45,7 +45,7 @@ export const workoutRepository = {
       .sort((a, b) => a.recordedAt.localeCompare(b.recordedAt));
     storage.set(StorageKeys.WORKOUTS, next);
 
-    await saveWithQueue(userId, "workout_sessions", toDB(data));
+    await saveWithQueue(userId, "workout_sessions", toDB(data), "user_id, recorded_at");
     eventBus.emit(EventTypes.WORKOUT_IMPORTED, data);
   },
 
