@@ -104,7 +104,7 @@ export default function ImportPage() {
           localStorage.setItem("athlos-activities", JSON.stringify(next));
 
           if (user) {
-            const { error } = await getSupabase().from("activities").upsert({
+            const { error } = await getSupabase().from("activities").insert({
               user_id: user.id, recorded_at: activity.date,
               activity_type: activity.type,
               distance: activity.distance ?? null,
@@ -112,7 +112,7 @@ export default function ImportPage() {
               elevation: activity.elevation ?? null,
               avg_heart_rate: activity.avgHeartRate ?? null,
               calories: activity.calories ?? null,
-            }, { onConflict: "user_id, recorded_at" });
+            });
             if (error) logs.push("Strava Supabase error: " + error.message);
           }
         }

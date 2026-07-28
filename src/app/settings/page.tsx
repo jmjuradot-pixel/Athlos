@@ -174,7 +174,7 @@ export default function SettingsPage() {
     const activities = JSON.parse(localStorage.getItem("athlos-activities") ?? "[]");
     if (Array.isArray(activities)) {
       for (const item of activities) {
-        const { error } = await getSupabase().from("activities").upsert({
+        const { error } = await getSupabase().from("activities").insert({
           user_id: user.id, recorded_at: item.date,
           activity_type: item.type,
           distance: item.distance ? Number(item.distance) : null,
@@ -182,7 +182,7 @@ export default function SettingsPage() {
           elevation: item.elevation ? Number(item.elevation) : null,
           avg_heart_rate: item.avgHeartRate ? Number(item.avgHeartRate) : null,
           calories: item.calories ? Number(item.calories) : null,
-        }, { onConflict: "user_id, recorded_at" });
+        });
         if (error) logs.push("Activity error: " + error.message);
       }
       logs.push("Actividades sincronizadas: " + activities.length);

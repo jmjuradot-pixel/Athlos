@@ -41,7 +41,7 @@ export default function ActivitiesPage() {
     setHistory(next);
     localStorage.setItem("athlos-activities", JSON.stringify(next));
     if (user) {
-      const { error } = await getSupabase().from("activities").upsert({
+      const { error } = await getSupabase().from("activities").insert({
         user_id: user.id, recorded_at: data.date,
         activity_type: data.type,
         distance: data.distance ? Number(data.distance) : null,
@@ -49,7 +49,7 @@ export default function ActivitiesPage() {
         elevation: data.elevation ? Number(data.elevation) : null,
         avg_heart_rate: data.avgHeartRate ? Number(data.avgHeartRate) : null,
         calories: data.calories ? Number(data.calories) : null,
-      }, { onConflict: "user_id, recorded_at" });
+      });
       if (error) console.error("Supabase activities error:", error);
     }
     setSaving(false);
