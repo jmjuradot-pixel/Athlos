@@ -80,7 +80,7 @@ export default function ActivitiesPage() {
             </Card>
             <div className="mt-6 flex items-center gap-4">
               <button disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:opacity-50"><Save className="size-4" />{saving ? "Guardando..." : saved ? "Guardado" : "Guardar"}</button>
-              {saved && <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-700">Datos guardados</span>}<SyncButton table="activities" label="actividades" />
+              {saved && <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-700">Datos guardados</span>}<SyncButton table="activities" label="actividades" localStorageKey="athlos-activities" transformRecord={(r: any) => ({ recorded_at: r.date, activity_type: r.type, distance: r.distance ? Number(r.distance) : null, moving_time: r.movingTime ? Number(r.movingTime) : null, elevation: r.elevation ? Number(r.elevation) : null, avg_heart_rate: r.avgHeartRate ? Number(r.avgHeartRate) : null, calories: r.calories ? Number(r.calories) : null })} />
             </div>
           </form>
 

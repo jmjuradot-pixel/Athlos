@@ -101,3 +101,74 @@ export async function syncTable(userId: string, table: string): Promise<{ synced
   saveQueue(queue.filter((item) => item.table !== table));
   return { synced, failed };
 }
+
+export function getLocalCount(storageKey: string): number {
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return 0;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.length : 1;
+  } catch {
+    return 0;
+  }
+}
+
+export async function syncLocalStorage(
+  userId: string,
+  table: string,
+  storageKey: string,
+  transformRecord: (record: any) => Record<string, unknown>,
+  onConflict?: string,
+): Promise<{ synced: number; failed: number; skipped: number }> {
+  const raw = localStorage.getItem(storageKey);
+  if (!raw) return { synced: 0, failed: 0, skipped: 0 };
+
+  let records: any[];
+  try { records = JSON.parse(raw); } catch { return { synced: 0, failed: 0, skipped: 0 }; }
+  if (!Array.isArray(records)) records = [records];
+  if (records.length === 0) return { synced: 0, failed: 0, skipped: 0 };
+
+  const supabase = getSupabase();
+
+  const existingDates = new Set<string>();
+  if (!onConflict) {
+    const { data: existing } = await supabase
+      .from(table)
+      .select("recorded_at, tested_at")
+      .eq("user_id", userId);
+    if (existing) {
+      for (const row of existing) {
+        if (row.recorded_at) existingDates.add(String(row.recorded_at));
+        if (row.tested_at) existingDates.add(String(row.tested_at));
+      }
+    }
+  }
+
+  let synced = 0;
+  let failed = 0;
+  let skipped = 0;
+
+  for (const record of records) {
+    const payload = { ...transformRecord(record), user_id: userId };
+    const dateKey = (payload as any).recorded_at ?? (payload as any).tested_at;
+    if (!onConflict && dateKey && existingDates.has(String(dateKey))) {
+      skipped++;
+      continue;
+    }
+
+    const operation = onConflict
+      ? supabase.from(table).upsert(payload, { onConflict })
+      : supabase.from(table).insert(payload);
+
+    const { error } = await operation;
+    if (error) {
+      console.error(`Sync local ${table} error:`, error);
+      failed++;
+    } else {
+      synced++;
+      if (!onConflict && dateKey) existingDates.add(String(dateKey));
+    }
+  }
+
+  return { synced, failed, skipped };
+}

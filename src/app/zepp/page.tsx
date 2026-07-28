@@ -109,7 +109,7 @@ export default function ZeppPage() {
             </Card>
             <div className="mt-6 flex items-center gap-4">
               <button disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:opacity-50"><Save className="size-4" />{saving ? "Guardando..." : saved ? "Guardado" : "Guardar"}</button>
-              {saved && <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-700">Datos guardados</span>}<SyncButton table="zepp_metrics" label="métricas" />
+              {saved && <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-700">Datos guardados</span>}<SyncButton table="zepp_metrics" label="métricas" localStorageKey="athlos-zepp-history" onConflict="user_id, recorded_at" transformRecord={(r: any) => ({ recorded_at: r.date, weight: r.weight ? Number(r.weight) : null, body_fat: r.bodyFat ? Number(r.bodyFat) : null, muscle_mass: r.muscleMass ? Number(r.muscleMass) : null, water: r.water ? Number(r.water) : null, visceral_fat: r.visceralFat ? Number(r.visceralFat) : null, bmr: r.bmr ? Number(r.bmr) : null, sleep_hours: r.sleepHours ? Number(r.sleepHours) : null, sleep_deep: r.sleepDeep ? Number(r.sleepDeep) : null, sleep_rem: r.sleepRem ? Number(r.sleepRem) : null, resting_heart_rate: r.restingHeartRate ? Number(r.restingHeartRate) : null, steps: r.steps ? Number(r.steps) : null })} />
             </div>
           </form>
 
