@@ -1,11 +1,22 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { BarChart3, Camera, HeartPulse, LayoutDashboard, Menu, Settings, X } from "lucide-react";
+import { Activity, BarChart3, Bike, Camera, Database, Dumbbell, HeartPulse, LayoutDashboard, Menu, Settings, X } from "lucide-react";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 
-const links = [{ label: "Dashboard", icon: LayoutDashboard, href: "/" }, { label: "Check-in semanal", icon: BarChart3, href: "/check-in" }, { label: "Progreso", icon: BarChart3, href: "/progress" }, { label: "Salud", icon: HeartPulse, href: "/health" }, { label: "Fotos", icon: Camera, href: "/photos" }, { label: "Ajustes", icon: Settings, href: "/settings" }];
+const links = [
+  { label: "Dashboard", icon: LayoutDashboard, href: "/" },
+  { label: "Check-in semanal", icon: BarChart3, href: "/check-in" },
+  { label: "Zepp", icon: Activity, href: "/zepp" },
+  { label: "Entrenamientos", icon: Dumbbell, href: "/workouts" },
+  { label: "Actividades", icon: Bike, href: "/activities" },
+  { label: "Progreso", icon: BarChart3, href: "/progress" },
+  { label: "Salud", icon: HeartPulse, href: "/health" },
+  { label: "Fotos", icon: Camera, href: "/photos" },
+  { label: "Importar", icon: Database, href: "/import" },
+  { label: "Ajustes", icon: Settings, href: "/settings" },
+];
 export function AppSidebar() {
  const [open, setOpen] = useState(false);
  const pathname = usePathname();
