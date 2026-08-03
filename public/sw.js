@@ -1,5 +1,5 @@
-const CACHE = "athlos-v2";
-const urls = ["/", "/check-in", "/zepp", "/workouts", "/activities", "/progress", "/health", "/photos", "/import", "/settings"];
+const CACHE = "athlos-v3";
+const urls = ["/", "/check-in", "/zepp", "/workouts", "/activities", "/progress", "/health", "/photos", "/import", "/settings", "/journal", "/ia-report"];
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(urls)));
   self.skipWaiting();
@@ -13,7 +13,26 @@ self.addEventListener("activate", (event) => {
   );
 });
 self.addEventListener("fetch", (event) => {
+  const { request } = event;
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request)
+        .then((res) => {
+          const clone = res.clone();
+          caches.open(CACHE).then((cache) => cache.put(request, clone));
+          return res;
+        })
+        .catch(() => caches.match(request).then((cached) => cached || caches.match("/")))
+    );
+    return;
+  }
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request)).catch(() => caches.match("/"))
+    caches.match(request).then((cached) => cached || fetch(request).then((res) => {
+      if (res.ok && new URL(request.url).origin === self.location.origin) {
+        const clone = res.clone();
+        caches.open(CACHE).then((cache) => cache.put(request, clone));
+      }
+      return res;
+    })).catch(() => caches.match("/"))
   );
 });
