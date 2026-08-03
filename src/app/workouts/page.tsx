@@ -28,7 +28,7 @@ export default function WorkoutsPage() {
         <div className="mt-6 flex items-center gap-4">
           <button disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:opacity-50"><Save className="size-4" />{saving ? "Guardando..." : saved ? "Guardado" : "Guardar"}</button>
           {saved && <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-700">Datos guardados</span>}
-          <SyncButton table="workout_sessions" label="entrenamientos" localStorageKey="athlos-workouts" onConflict="user_id, recorded_at" transformRecord={(r: any) => ({ recorded_at: r.recordedAt, duration: r.duration ?? null, volume: r.volume ?? null, muscle_groups: r.muscleGroups ?? [], exercises: r.exercises ?? null })} />
+          <SyncButton table="workout_sessions" label="entrenamientos" localStorageKey="athlos-workouts" onConflict="user_id, recorded_at" transformRecord={(r: any) => ({ recorded_at: r.recordedAt, duration: r.duration ?? null, volume: r.volume ?? null, muscle_groups: Array.isArray(r.muscleGroups) ? r.muscleGroups : [], exercises: r.exercises ?? null })} />
         </div>
       </form>
 

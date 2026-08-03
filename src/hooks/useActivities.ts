@@ -21,7 +21,7 @@ export function useActivities() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || user.id === "local-user") return;
     setLoading(true);
     const local = activityRepository.getAll();
     setHistory(local);

@@ -27,7 +27,10 @@ function toDB(data: Partial<Workout>): Record<string, unknown> {
 
 export const workoutRepository = {
   getAll(): Workout[] {
-    return storage.get<Workout[]>(StorageKeys.WORKOUTS, []);
+    return storage.get<Workout[]>(StorageKeys.WORKOUTS, []).map((w) => ({
+      ...w,
+      muscleGroups: Array.isArray(w.muscleGroups) ? w.muscleGroups : [],
+    }));
   },
 
   async fetchRemote(userId: string): Promise<Workout[]> {

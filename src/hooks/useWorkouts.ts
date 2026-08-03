@@ -18,7 +18,7 @@ export function useWorkouts() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || user.id === "local-user") return;
     setLoading(true);
     const local = workoutRepository.getAll();
     setHistory(local);

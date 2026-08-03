@@ -34,7 +34,7 @@ export function useCheckIn() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || user.id === "local-user") return;
     setLoading(true);
     const local = checkInRepository.getAll();
     setHistory(local);
